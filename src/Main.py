@@ -19,6 +19,19 @@ def showHelp():
     return SUCCESS_OK
 
 
+def getBooleanFromUser(question):
+    while True:
+        reply = input(question + " ").lower().strip()
+
+        if reply == "y" or reply == "yes" or reply == "n" or reply == "no":
+            if reply[0] == "y":
+                return True
+            else:
+                return False
+        else:
+            print(warning("Invalid reply!"))
+
+
 def run(arguments):
     logging.getLogger().setLevel(logging.INFO)
     print(info("Jazz Jackrabbit 2 Converter v1.0"))
