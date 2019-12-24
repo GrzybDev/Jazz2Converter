@@ -82,6 +82,21 @@ def run(arguments):
         else:
             print(error("You didn't specified game folder!"))
             return ERROR_NO_GAME_FOLDER_SPECIFIED
+    else:
+        validGameFolder = False
+
+        while not validGameFolder:
+            gameFolder = input("Please enter Jazz Jackrabbit 2 game directory: ")
+
+            if os.path.exists(gameFolder) and (os.path.exists(gameFolder + "/Jazz2.exe")
+                                               and os.path.isfile(gameFolder + "/Jazz2.exe")):
+                validGameFolder = True
+            else:
+                print(warning("Folder you specified: " + gameFolder + " is not valid Jazz Jackrabbit 2 Game Folder!"))
+
+        converterArgs.update(skipLangs=getBooleanFromUser("Convert language files (*.j2s)?"))
+
+        # TODO: Start conversion
 
     return SUCCESS_OK
 
