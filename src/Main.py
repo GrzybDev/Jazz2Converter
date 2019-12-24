@@ -78,9 +78,10 @@ def run(arguments):
                 pass
             else:
                 print(error("Folder you specified: " + gameFolder + " is not valid Jazz Jackrabbit 2 Game Folder!"))
+                return ERROR_NOT_VALID_GAME_FOLDER
         else:
             print(error("You didn't specified game folder!"))
-        raise NotImplementedError
+            return ERROR_NO_GAME_FOLDER_SPECIFIED
 
     return SUCCESS_OK
 
