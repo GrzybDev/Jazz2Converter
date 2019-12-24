@@ -8,23 +8,23 @@ logging.basicConfig(format="[%(module)s] %(message)s")
 
 
 def showHelp():
-    logging.info(info("Usage: run.py [-h|--help] -i|--input \"GAME FOLDER\" (arguments)"))
-    logging.info("\n")
-    logging.info(info("-h | --help || Shows this message"))
-    logging.info(info("-v | --verbose || Shows additional debug information"))
-    logging.info(info("-i | --input || Sets Jazz Jackrabbit 2 game folder"))
-    logging.info("\n")
-    logging.info(info("Converter options:"))
-    logging.info(info("--skip-languages || Skips language files (*.j2s)"))
+    print(info("Usage: run.py [-h|--help] -i|--input \"GAME FOLDER\" (arguments)"))
+    print("\n")
+    print(info("-h | --help || Shows this message"))
+    print(info("-v | --verbose || Shows additional debug information"))
+    print(info("-i | --input || Sets Jazz Jackrabbit 2 game folder"))
+    print("\n")
+    print(info("Converter options:"))
+    print(info("--skip-languages || Skips language files (*.j2s)"))
     return SUCCESS_OK
 
 
 def run(arguments):
     logging.getLogger().setLevel(logging.INFO)
-    logging.info(info("Jazz Jackrabbit 2 Converter v1.0"))
-    logging.info(info("By Marek Grzyb (@GrzybDev) (https://github.com/GrzybDev)"))
-    logging.info(info("Designed for Jazz Jackrabbit 2 v1.24"))
-    logging.info(info("--------------------------------------------------------"))
+    print(info("Jazz Jackrabbit 2 Converter v1.0"))
+    print(info("By Marek Grzyb (@GrzybDev) (https://github.com/GrzybDev)"))
+    print(info("Designed for Jazz Jackrabbit 2 v1.24"))
+    print(info("--------------------------------------------------------"))
 
     converterArgs = {}
     gameFolder = None
@@ -38,8 +38,8 @@ def run(arguments):
             opts, args = getopt.getopt(arguments[1:], "hvi:", ["help", "verbose", "input=",
                                                                "skip-languages"])
         except getopt.GetoptError:
-            logging.critical(error("Invalid arguments provided!\n"
-                                   "Run program without parameters to enter interactive mode or check --help for usage"))
+            print(error("Invalid arguments provided!\n"
+                        "Run program without parameters to enter interactive mode or check --help for usage"))
             return ERROR_INVALID_ARGUMENTS
 
         for opt, arg in opts:
@@ -52,8 +52,8 @@ def run(arguments):
             elif opt in ("--skip-languages"):
                 knownArgs.get(opt)()
             else:
-                logging.critical(error("Got unknown argument: " + opt + "\n"
-                                       "Run program without parameters to enter interactive mode or check --help for usage"))
+                print(error("Got unknown argument: " + opt + "\n"
+                            "Run program without parameters to enter interactive mode or check --help for usage"))
                 return ERROR_UNKNOWN_ARGUMENT
     else:
         # TODO: Interactive mode
@@ -63,4 +63,4 @@ def run(arguments):
 
 
 if __name__ == "__main__":
-    logging.critical(error("You have to run Jazz2Converter using run.py located in root directory!"))
+    print(error("You have to run Jazz2Converter using run.py located in root directory!"))
