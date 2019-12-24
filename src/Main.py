@@ -69,6 +69,14 @@ def run(arguments):
                 print(error("Got unknown argument: " + opt + "\n"
                             "Run program without parameters to enter interactive mode or check --help for usage"))
                 return ERROR_UNKNOWN_ARGUMENT
+
+        if gameFolder is not None:
+            if os.path.exists(gameFolder) and (os.path.exists(gameFolder + "/Jazz2.exe")
+                                               and os.path.isfile(gameFolder + "/Jazz2.exe")):
+                # TODO: Start conversion
+                pass
+            else:
+                print(error("Folder you specified: " + gameFolder + " is not valid Jazz Jackrabbit 2 Game Folder!"))
     else:
         # TODO: Interactive mode
         raise NotImplementedError
