@@ -77,8 +77,8 @@ def run(arguments):
                 pass
             else:
                 print(error("Folder you specified: " + gameFolder + " is not valid Jazz Jackrabbit 2 Game Folder!"))
-    else:
-        # TODO: Interactive mode
+        else:
+            print(error("You didn't specified game folder!"))
         raise NotImplementedError
 
     return SUCCESS_OK
