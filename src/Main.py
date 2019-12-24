@@ -2,7 +2,8 @@ import logging
 import getopt
 import os.path
 
-from src.errors import SUCCESS_OK, ERROR_INVALID_ARGUMENTS, ERROR_UNKNOWN_ARGUMENT
+from src.errors import SUCCESS_OK, ERROR_INVALID_ARGUMENTS, ERROR_UNKNOWN_ARGUMENT, ERROR_NOT_VALID_GAME_FOLDER, \
+                       ERROR_NO_GAME_FOLDER_SPECIFIED
 from src.logger import error, info, warning
 
 logging.basicConfig(format="[%(module)s] %(message)s")
