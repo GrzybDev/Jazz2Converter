@@ -44,6 +44,7 @@ def run(arguments):
 
     converterArgs = {}
     gameFolder = None
+    outputFolder = None
 
     if len(arguments) > 1:
         knownArgs = {
@@ -51,8 +52,8 @@ def run(arguments):
         }
 
         try:
-            opts, args = getopt.getopt(arguments[1:], "hvi:", ["help", "verbose", "input=",
-                                                               "skip-languages"])
+            opts, args = getopt.getopt(arguments[1:], "hvi:o:", ["help", "verbose", "input=", "output="
+                                                                 "skip-languages"])
         except getopt.GetoptError:
             print(error("Invalid arguments provided!\n"
                         "Run program without parameters to enter interactive mode or check --help for usage"))
@@ -65,6 +66,8 @@ def run(arguments):
                 logging.getLogger().setLevel(logging.DEBUG)
             elif opt in ('-i', "--input"):
                 gameFolder = arg
+            elif opt in ('-o', "--output"):
+                outputFolder = arg
             elif opt in ("--skip-languages"):
                 knownArgs.get(opt)()
             else:
@@ -72,16 +75,15 @@ def run(arguments):
                             "Run program without parameters to enter interactive mode or check --help for usage"))
                 return ERROR_UNKNOWN_ARGUMENT
 
-        if gameFolder is not None:
+        if gameFolder is not None or outputFolder is not None:
             if os.path.exists(gameFolder) and (os.path.exists(gameFolder + "/Jazz2.exe")
                                                and os.path.isfile(gameFolder + "/Jazz2.exe")):
-                # TODO: Start conversion
                 pass
             else:
                 print(error("Folder you specified: " + gameFolder + " is not valid Jazz Jackrabbit 2 Game Folder!"))
                 return ERROR_NOT_VALID_GAME_FOLDER
         else:
-            print(error("You didn't specified game folder!"))
+            print(error("You didn't specified game or output folder!"))
             return ERROR_NO_GAME_FOLDER_SPECIFIED
     else:
         validGameFolder = False
@@ -95,9 +97,10 @@ def run(arguments):
             else:
                 print(warning("Folder you specified: " + gameFolder + " is not valid Jazz Jackrabbit 2 Game Folder!"))
 
-        converterArgs.update(skipLangs=getBooleanFromUser("Convert language files (*.j2s)?"))
+        while outputFolder is None:
+            outputFolder = input("Please enter path where to put converted files: ")
 
-        # TODO: Start conversion
+        converterArgs.update(skipLangs=not getBooleanFromUser("Convert language files (*.j2s)?"))
 
     return SUCCESS_OK
 
