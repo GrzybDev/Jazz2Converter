@@ -5,6 +5,7 @@ import os.path
 from src.errors import SUCCESS_OK, ERROR_INVALID_ARGUMENTS, ERROR_UNKNOWN_ARGUMENT, ERROR_NOT_VALID_GAME_FOLDER, \
                        ERROR_NO_GAME_FOLDER_SPECIFIED
 from src.logger import *
+from src.Converter import Converter
 
 logging.basicConfig(format="[%(module)s] %(message)s")
 
@@ -102,6 +103,7 @@ def run(arguments):
 
         converterArgs.update(skipLangs=not getBooleanFromUser("Convert language files (*.j2s)?"))
 
+    Converter(converterArgs, gameFolder, outputFolder).run()
     return SUCCESS_OK
 
 
