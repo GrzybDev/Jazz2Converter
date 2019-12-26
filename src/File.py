@@ -24,16 +24,11 @@ class File(object):
         temp = ""
 
         while True:
-            char = self.context.read(1)
+            char = self.ReadChar()
 
-            if char == b'\x00':
+            if char == 0:
                 break
-            elif char == b'\x5c':
-                temp += '\\'
-                continue
 
-            # TODO: Convert Jazz Jackrabbit 2 Encoded text to Unicode
-
-            temp += char.decode('unicode_escape')
+            temp += jazz2Encoding[char]
 
         return temp
