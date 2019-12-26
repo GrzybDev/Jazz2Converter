@@ -16,6 +16,11 @@ class File(object):
         return unpack("I", self.context.read(4))[0]
 
     def ReadNullTerminatedString(self):
+        jazz2Encoding = "                                 " \
+                        "!\"#$% ^()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
+                        "[\\]∞_`abcdefghijklmnopqrstuvwxyz"\
+                        "   ~   ‚ „…    Š Œ             š œ  Ÿ ¡ęóąśłżźćńĘÓĄŚŁŻŹĆŃ           "\
+                        "¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
         temp = ""
 
         while True:
