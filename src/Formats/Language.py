@@ -28,13 +28,10 @@ class LanguageConverter(object):
             "main": self.mainBlockContent
         }
 
-        fileJSON = json.dumps(convertedLayout)
-
         logging.info(info("Finished conversion. Now saving to " + to + "..."))
 
-        finalFile = open(to, "w")
-        finalFile.write(fileJSON)
-        finalFile.close()
+        with open(to, "w", encoding='utf-8') as finalFile:
+            json.dump(convertedLayout, finalFile, ensure_ascii=False)
 
         self.cancel()
 
