@@ -12,5 +12,8 @@ class File(object):
     def ReadByte(self):
         return unpack("B", self.context.read(1))[0]
 
+    def ReadUShort(self):
+        return unpack("H", self.context.read(2))[0]
+
     def ReadUInt(self):
         return unpack("I", self.context.read(4))[0]
