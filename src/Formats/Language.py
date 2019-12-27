@@ -3,6 +3,7 @@ import logging
 
 from src.Utilities.File import File
 from src.Helpers.logger import *
+from src.DataClasses.Language import LevelEntry, HelpStringEntry
 
 
 class LanguageConverter(object):
@@ -20,19 +21,30 @@ class LanguageConverter(object):
         self.stringsCount = 0
 
         self.mainBlockLength = 0
-        self.mainBlockContent = []
+        self.mainBlockContent = None
+        self.mainBlockStringsOffsets = []
+        self.mainBlockStrings = []
 
-        self.isFinished = False
+        self.levelsCount = 0
+        self.levelEntries = []
+
+        self.helpStringsBlockLength = 0
+        self.helpStringsBlock = None
 
     def convert(self):
         logging.info(info("Now converting " + self.path + "..."))
 
-        self.__readStringsCount()
-        self.__readFirstBlock()
+        self.__readMainBlock()
+        self.__readLevelBlock()
+        self.__readHelpStringsBlock()
+
+    def finish(self):
+        self.file.context.close()
 
     def save(self, to):
         convertedLayout = {
-            "main": self.mainBlockContent
+            "main": self.mainBlockStrings,
+            "levels": self.levelEntries
         }
 
         logging.info(info("Finished conversion. Now saving to " + to + "..."))
@@ -40,29 +52,99 @@ class LanguageConverter(object):
         with open(to, "w", encoding='utf-8') as finalFile:
             json.dump(convertedLayout, finalFile, ensure_ascii=False)
 
-        self.cancel()
+        self.finish()
 
-    def cancel(self):
-        self.file.context.close()
+    def __readStringFromBlock(self, block, offset):
+        charCount = 0
+        temp = ""
 
-    def __readStringsCount(self):
+        while True:
+            try:
+                char = block[offset:][charCount]
+            except IndexError:
+                char = 0
+
+            if char == 0:
+                break
+            elif self.jazz2Encoding[char] == "ż":
+                nextChar = block[offset:][charCount + 1]
+                nextCharEncoded = self.jazz2Encoding[nextChar]
+
+                if nextCharEncoded.isdigit():
+                    temp += "^" + nextCharEncoded
+                else:
+                    temp += "ż" + nextCharEncoded
+
+                charCount += 2
+                continue
+
+            temp += self.jazz2Encoding[char]
+            charCount += 1
+
+        return temp
+
+    def __readMainBlock(self):
         self.stringsCount = self.file.ReadUInt()
-
-        logging.debug(verbose("Strings count: " + str(self.stringsCount)))
-
-    def __readFirstBlock(self):
         self.mainBlockLength = self.file.ReadUInt()
 
+        logging.debug(verbose("Strings count: " + str(self.stringsCount)))
         logging.debug(verbose("Main block length (in bytes): " + str(self.mainBlockLength)))
-
-        endingOffset = self.file.context.tell() + self.mainBlockLength
+        
+        self.mainBlockContent = self.file.ReadBytes(self.mainBlockLength)
 
         for i in range(self.stringsCount):
-            if self.file.context.tell() <= endingOffset:  # Check if we are not exceeding main block
-                self.mainBlockContent.append(self.file.ReadNullTerminatedString())
-            else:
-                logging.warning(warning("Current offset is: " + str(self.file.context.tell()) +
-                                        ", and main block should end at: " + str(endingOffset) +
-                                        ".\nBut there's still " + str(self.stringsCount - i) + " strings left!\n"
-                                        "Skipping conversion of that file..."))
-                self.cancel()
+            self.mainBlockStringsOffsets.append(self.file.ReadUInt())
+        
+        logging.debug(verbose("Main block strings offsets: " + str(self.mainBlockStringsOffsets)))
+
+        for offset in self.mainBlockStringsOffsets:
+            self.mainBlockStrings.append(self.__readStringFromBlock(self.mainBlockContent, offset))
+
+    def __readLevelEntry(self):
+        entry = LevelEntry()
+
+        entry.levelName = self.file.ReadString(8).decode().replace("\x00", "")
+        entry.minTextID = self.file.ReadByte()
+        entry.maxTextID = self.file.ReadByte()
+        entry.levelOffset = self.file.ReadUShort()
+        entry.helpStrings = []
+
+        return entry.__dict__
+
+    def __readLevelBlock(self):
+        self.levelsCount = self.file.ReadUInt()
+
+        logging.debug(verbose("Level count: " + str(self.levelsCount)))
+
+        for i in range(self.levelsCount):
+            self.levelEntries.append(self.__readLevelEntry())
+
+    def __readHelpStringEntry(self, stopAtID, offset):
+        currentID = 0
+
+        helpEntries = []
+
+        while stopAtID != currentID:
+            entry = HelpStringEntry()
+
+            entry.textID = self.helpStringsBlock[offset:][0]
+            currentID = entry.textID
+            offset += 1
+
+            entry.textLength = self.helpStringsBlock[offset:][0]
+            offset += 1
+
+            helpString = self.helpStringsBlock[offset:][:entry.textLength]
+            entry.helpString = self.__readStringFromBlock(helpString, 0)
+            offset += entry.textLength
+
+            helpEntries.append(entry.__dict__)
+
+        return helpEntries
+
+    def __readHelpStringsBlock(self):
+        self.helpStringsBlockLength = self.file.ReadUInt()
+        self.helpStringsBlock = self.file.ReadBytes(self.helpStringsBlockLength)
+
+        for level in self.levelEntries:
+            level["helpStrings"].append(self.__readHelpStringEntry(level["maxTextID"], level["levelOffset"]))
