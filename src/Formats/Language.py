@@ -1,8 +1,8 @@
 import json
 import logging
 
-from src.File import File
-from src.logger import *
+from src.Utilities.File import File
+from src.Helpers.logger import *
 
 
 class LanguageConverter(object):
