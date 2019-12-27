@@ -17,3 +17,19 @@ class File(object):
 
     def ReadUInt(self):
         return unpack("I", self.context.read(4))[0]
+
+    def ReadString(self, length=None):
+        if length is None:
+            temp = ""
+
+            while True:
+                char = self.ReadByte()
+
+                if char == 0:
+                    break
+
+                temp += chr(char)
+
+            return temp
+        else:
+            return self.ReadBytes(length)
