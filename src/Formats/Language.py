@@ -6,6 +6,13 @@ from src.logger import *
 
 
 class LanguageConverter(object):
+
+    jazz2Encoding = "                                 " \
+                    "!\"#$% ^()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
+                    "[\\]∞_`abcdefghijklmnopqrstuvwxyz" \
+                    "   ~   ‚ „…    Š Œ             š œ  Ÿ ¡ęóąśłżźćńĘÓĄŚŁŻŹĆŃ           " \
+                    "¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+
     def __init__(self, path):
         self.file = File(open(path, "rb"))
         self.path = path
