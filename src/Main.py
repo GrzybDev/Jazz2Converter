@@ -2,9 +2,9 @@ import logging
 import getopt
 import os.path
 
-from src.errors import SUCCESS_OK, ERROR_INVALID_ARGUMENTS, ERROR_UNKNOWN_ARGUMENT, ERROR_NOT_VALID_GAME_FOLDER, \
+from src.Helpers.errors import SUCCESS_OK, ERROR_INVALID_ARGUMENTS, ERROR_UNKNOWN_ARGUMENT, ERROR_NOT_VALID_GAME_FOLDER, \
                        ERROR_NO_GAME_FOLDER_SPECIFIED
-from src.logger import *
+from src.Helpers.logger import *
 from src.Converter import Converter
 
 logging.basicConfig(format="[%(module)s] %(message)s")
