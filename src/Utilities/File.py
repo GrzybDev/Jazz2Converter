@@ -9,7 +9,7 @@ class File(object):
     def ReadBytes(self, count):
         return self.context.read(count)
 
-    def ReadChar(self):
+    def ReadByte(self):
         return unpack("B", self.context.read(1))[0]
 
     def ReadUInt(self):
