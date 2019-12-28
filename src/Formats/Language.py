@@ -4,9 +4,10 @@ import logging
 from src.Utilities.File import File
 from src.Helpers.logger import *
 from src.DataClasses.Language import LevelEntry, HelpStringEntry
+from src.Utilities import FileConverter
 
 
-class LanguageConverter(object):
+class LanguageConverter(FileConverter):
 
     jazz2Encoding = "                                 " \
                     "!\"#$% ^()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
