@@ -97,3 +97,21 @@ class DataConverter(FileConverter):
 
     def save(self, outputPath):
         super().save(outputPath)
+
+        for file in self.archiveFiles:
+            logging.debug(verbose("Decompressing " + file.name + "..."))
+            finalFilePath = outputPath + file.name
+
+            self.file.context.seek(self.headerEndOffset + file.offset)
+
+            rawFile = self.file.ReadBytes(file.filePackedSize)
+            decompressedFile = zlib.decompress(rawFile)
+
+            if len(decompressedFile) != file.fileUnpackedSize:
+                logging.warning(warning("Failed to save file to " + finalFilePath + "!"
+                                        "That file won't be converted/saved..."))
+                continue
+
+            with open(finalFilePath, "wb") as finalFile:
+                logging.info(info("Now saving file " + finalFilePath + "..."))
+                finalFile.write(decompressedFile)
