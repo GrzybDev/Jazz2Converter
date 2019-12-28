@@ -24,6 +24,7 @@ class DataConverter(FileConverter):
         self.headerBlock = ""
 
         self.archiveFiles = []
+        self.headerEndOffset = 0
 
     def convert(self):
         super().convert()
@@ -91,6 +92,8 @@ class DataConverter(FileConverter):
                                   str(file.offset) + " (size: " + str(file.filePackedSize) + " bytes)"))
 
             self.archiveFiles.append(file)
+
+        self.headerEndOffset = self.file.context.tell()
 
     def save(self, outputPath):
         super().save(outputPath)
