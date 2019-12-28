@@ -43,16 +43,18 @@ class LanguageConverter(FileConverter):
     def save(self, to):
         super().save(to)
 
-    def save(self, to):
-        convertedLayout = {
-            "main": self.mainBlockStrings,
-            "levels": self.levelEntries
-        }
+        try:
+            convertedLayout = {
+                "main": self.mainBlockStrings,
+                "levels": self.levelEntries
+            }
 
-        with open(to, "w", encoding='utf-8') as finalFile:
-            json.dump(convertedLayout, finalFile, ensure_ascii=False)
+            with open(to, "w", encoding='utf-8') as finalFile:
+                json.dump(convertedLayout, finalFile, ensure_ascii=False)
 
-        self.finish()
+            self.finish()
+        except Exception as e:
+            logging.error(error("Unexpected error happened while converting file: " + self.path + "! (" + str(e) + ")"))
 
     def __readStringFromBlock(self, block, offset):
         charCount = 0
