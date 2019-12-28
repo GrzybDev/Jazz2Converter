@@ -90,5 +90,7 @@ class DataConverter(FileConverter):
             logging.debug(verbose("Found file: " + file.name + " (type: " + str(hex(file.type)) + ") at offset " +
                                   str(file.offset) + " (size: " + str(file.filePackedSize) + " bytes)"))
 
+            self.archiveFiles.append(file)
+
     def save(self, outputPath):
         super().save(outputPath)
