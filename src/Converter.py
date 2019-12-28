@@ -7,7 +7,7 @@ from pathlib import Path
 
 from src.Helpers.logger import *
 from src.Helpers.errors import ERROR_OUTPUT_IS_NOT_DIRECTORY, ERROR_OUTPUT_IS_NOT_EMPTY
-from src.Formats.Language import LanguageConverter
+from src.Formats import *
 
 
 class Converter(object):
