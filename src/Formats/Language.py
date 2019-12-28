@@ -33,9 +33,12 @@ class LanguageConverter(FileConverter):
     def convert(self):
         super().convert()
 
-        self.__readMainBlock()
-        self.__readLevelBlock()
-        self.__readHelpStringsBlock()
+        try:
+            self.__readMainBlock()
+            self.__readLevelBlock()
+            self.__readHelpStringsBlock()
+        except Exception as e:
+            logging.error(error("Unexpected error happened while converting file: " + self.path + "! (" + str(e) + ")"))
 
     def finish(self):
         self.file.context.close()
