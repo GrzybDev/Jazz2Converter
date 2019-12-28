@@ -46,3 +46,19 @@ class Converter(object):
                 converter = LanguageConverter(file)
                 converter.convert()
                 converter.save(self.outputPath + "/Languages/" + Path(file).name.split(".j2s")[0] + ".json")
+
+            logging.info(info("Finished converting languages!"))
+
+        if "skipData" in self.config and self.config["skipData"]:
+            logging.debug(verbose("Skipping data files..."))
+        else:
+            logging.info(info("Now converting data files..."))
+
+            os.mkdir(self.outputPath + "/Data")
+
+            for file in glob.glob(self.gamePath + "/*.j2d"):
+                converter = DataConverter(file)
+                converter.convert()
+                converter.save(self.outputPath + "/Data/")
+
+            logging.info(info("Finished converting data files!"))
