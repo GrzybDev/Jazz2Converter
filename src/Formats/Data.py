@@ -65,7 +65,7 @@ class DataConverter(FileConverter):
 
         self.headerBlock = zlib.decompress(self.file.ReadBytes(self.headerBlockPackedSize))
 
-        if len(self.headerBlock.data) != self.headerBlockUnpackedSize:
+        if len(self.headerBlock) != self.headerBlockUnpackedSize:
             logging.warning(warning("File " + self.path + " is not correct Jazz Jackrabbit 2 Data File!"
                                                           " (Incorrect unpacked size) "
                                                           "Skipping that file..."))
