@@ -31,7 +31,7 @@ class LanguageConverter(FileConverter):
         self.helpStringsBlock = None
 
     def convert(self):
-        logging.info(info("Now converting " + self.path + "..."))
+        super().convert()
 
         self.__readMainBlock()
         self.__readLevelBlock()
@@ -45,8 +45,6 @@ class LanguageConverter(FileConverter):
             "main": self.mainBlockStrings,
             "levels": self.levelEntries
         }
-
-        logging.info(info("Finished conversion. Now saving to " + to + "..."))
 
         with open(to, "w", encoding='utf-8') as finalFile:
             json.dump(convertedLayout, finalFile, ensure_ascii=False)
