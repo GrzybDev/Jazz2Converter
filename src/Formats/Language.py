@@ -1,9 +1,8 @@
 import json
 import logging
 
-from src.Utilities.File import File
-from src.Helpers.logger import *
 from src.DataClasses.Language import LevelEntry, HelpStringEntry
+from src.Helpers.logger import *
 from src.Utilities import FileConverter
 
 
@@ -16,8 +15,7 @@ class LanguageConverter(FileConverter):
                     "¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
 
     def __init__(self, path):
-        self.file = File(open(path, "rb"))
-        self.path = path
+        super().__init__(path)
 
         self.stringsCount = 0
 
