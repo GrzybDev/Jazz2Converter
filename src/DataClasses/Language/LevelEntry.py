@@ -1,4 +1,4 @@
-class LevelEntry(object):
+class LevelEntry:
     levelName = ""
     minTextID = 0  # Always 0?
     maxTextID = 0
