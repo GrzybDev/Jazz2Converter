@@ -40,8 +40,8 @@ class LanguageConverter(FileConverter):
         except Exception as e:
             logging.error(error("Unexpected error happened while converting file: " + self.path + "! (" + str(e) + ")"))
 
-    def finish(self):
-        self.file.context.close()
+    def save(self, to):
+        super().save(to)
 
     def save(self, to):
         convertedLayout = {
