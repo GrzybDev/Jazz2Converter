@@ -129,10 +129,22 @@ class DataConverter(FileConverter):
             decompressedFile = zlib.decompress(rawFile)
 
             if len(decompressedFile) != file.fileUnpackedSize:
-                logging.warning(warning("Failed to save file to " + finalFilePath + "!"
+                logging.warning(warning("Failed to save file to " + finalFilePath + "! "
                                         "That file won't be converted/saved..."))
                 continue
+
+            fileConverter = self.knownFileTypes.get(file.type)
+
+            if fileConverter is None:
+                logging.warning(warning("Unknown file type: " + str(file.type) + "! "
+                                        "Will save raw file to " + finalFilePath))
 
             with open(finalFilePath, "wb") as finalFile:
                 logging.info(info("Now saving file " + finalFilePath + "..."))
                 finalFile.write(decompressedFile)
+                finalFile.close()
+
+            if fileConverter is not None:
+                fileConverter = fileConverter(finalFilePath)
+                fileConverter.convert()
+                fileConverter.save(finalFilePath)
