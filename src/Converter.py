@@ -12,6 +12,12 @@ from src.Formats import *
 
 class Converter(object):
 
+    converters = {
+        "j2s": LanguageConverter,
+        "j2d": DataConverter,
+        "j2a": AnimsConverter
+    }
+
     def __init__(self, config, gamePath, outputPath):
         self.config = config
         self.gamePath = gamePath
@@ -32,33 +38,30 @@ class Converter(object):
                     logging.critical(error("Output path is not directory!"))
                     sys.exit(ERROR_OUTPUT_IS_NOT_DIRECTORY)
 
+    def convert(self, option, type, extension):
+        if option in self.config and self.config[option]:
+            logging.warning(warning("Skipping " + type + " files..."))
+        else:
+            logging.info(info("Now converting " + type + " files..."))
+
+            outputPath = self.outputPath + "/" + type + "/"
+            os.mkdir(outputPath)
+
+            for file in glob.glob(self.gamePath + "/*." + extension):
+                converter = self.converters.get(extension, None)
+
+                if converter is not None:
+                    converter = converter(file)
+                    converter.convert()
+                    converter.save(outputPath)
+                else:
+                    logging.warning(warning("No valid converter for file type " + type + " "
+                                            "(" + extension + ") is defined!"))
+                    break
+
     def run(self):
         self.__prepare()
 
-        if "skipLangs" in self.config and self.config["skipLangs"]:
-            logging.debug(verbose("Skipping language files..."))
-        else:
-            logging.info(info("Now converting language files..."))
-
-            os.mkdir(self.outputPath + "/Languages")
-
-            for file in glob.glob(self.gamePath + "/*.j2s"):
-                converter = LanguageConverter(file)
-                converter.convert()
-                converter.save(self.outputPath + "/Languages/" + Path(file).name.split(".j2s")[0] + ".json")
-
-            logging.info(info("Finished converting languages!"))
-
-        if "skipData" in self.config and self.config["skipData"]:
-            logging.debug(verbose("Skipping data files..."))
-        else:
-            logging.info(info("Now converting data files..."))
-
-            os.mkdir(self.outputPath + "/Data")
-
-            for file in glob.glob(self.gamePath + "/*.j2d"):
-                converter = DataConverter(file)
-                converter.convert()
-                converter.save(self.outputPath + "/Data/")
-
-            logging.info(info("Finished converting data files!"))
+        self.convert("skipLangs", "Language", "j2s")
+        self.convert("skipData", "Data", "j2d")
+        self.convert("skipAnims", "Anims", "j2a")
