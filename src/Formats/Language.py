@@ -1,6 +1,8 @@
 import json
 import logging
 
+from pathlib import Path
+
 from src.DataClasses.Language import LevelEntry, HelpStringEntry
 from src.Helpers.logger import *
 from src.Utilities import FileConverter
@@ -41,7 +43,9 @@ class LanguageConverter(FileConverter):
             logging.error(error("Unexpected error happened while converting file: " + self.path + "! (" + str(e) + ")"))
 
     def save(self, to):
-        super().save(to)
+        finalFilePath = to + Path(self.path).stem + ".json"
+
+        super().save(finalFilePath)
 
         try:
             convertedLayout = {
@@ -49,12 +53,13 @@ class LanguageConverter(FileConverter):
                 "levels": self.levelEntries
             }
 
-            with open(to, "w", encoding='utf-8') as finalFile:
+            with open(finalFilePath, "w", encoding='utf-8') as finalFile:
                 json.dump(convertedLayout, finalFile, ensure_ascii=False)
 
             self.finish()
         except Exception as e:
-            logging.error(error("Unexpected error happened while converting file: " + self.path + "! (" + str(e) + ")"))
+            logging.error(error("Unexpected error happened while saving to file: " + finalFilePath + "! "
+                                "(" + str(e) + ")"))
 
     def __readStringFromBlock(self, block, offset):
         charCount = 0
