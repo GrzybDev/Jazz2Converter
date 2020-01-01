@@ -24,8 +24,6 @@ class AnimsConverter(FileConverter):
         self.setCount = 0
         self.setAddresses = []
 
-        self.sets = []
-
     def convert(self):
         super().convert()
 
@@ -34,11 +32,6 @@ class AnimsConverter(FileConverter):
             self.__loadHeader()
 
             self.__loadSets()
-
-            for setObj in self.sets:
-                self.__loadAnims(setObj)
-
-                self.__convertAnims(setObj)
         except Exception as e:
             logging.error(error("Unexpected error happened while converting file: " + self.path + "! (" + str(e) + ")"))
 
@@ -48,12 +41,14 @@ class AnimsConverter(FileConverter):
 
         if self.magic != 0x42494C41:
             logging.warning(warning("Invalid magic number in Anims file! (Expected: " + str(0x42494C41) + ", "
-                            "got: " + str(self.magic) + "). Skipping that file..."))
+                                                                                                          "got: " + str(
+                self.magic) + "). Skipping that file..."))
             self.finish()
 
         if self.signature != 0x00BEBA00:
             logging.warning(warning("Invalid signature in Anims file! (Expected: " + str(0x00BEBA00) + ", "
-                            "got: " + str(self.signature) + "). Skipping that file..."))
+                                                                                                       "got: " + str(
+                self.signature) + "). Skipping that file..."))
             self.finish()
 
     def __loadHeader(self):
@@ -83,11 +78,6 @@ class AnimsConverter(FileConverter):
             animSet = Set()
 
             magic = self.file.ReadUInt()
-
-            if magic != 0x4D494E41:
-                logging.warning(warning("Header for set " + str(setID) + " is incorrect (bad magic value!) "
-                                        "Skipping that set..."))
-                continue
 
             animSet.ID = setID
 
@@ -144,161 +134,174 @@ class AnimsConverter(FileConverter):
             animSet.imageDataBlock = DataBlock(animSet.imageDataBlock)
             animSet.sampleDataBlock = DataBlock(animSet.sampleDataBlock)
 
-            self.sets.append(animSet)
+            if magic != 0x4D494E41:
+                logging.warning(warning("Header for set " + str(setID) + " is incorrect (bad magic value!) "
+                                        "Skipping that set..."))
+                continue
 
-    def __loadAnims(self, setObj):
-        for i in range(setObj.animationsCount):
-            animSection = Section()
+            for animID in range(animSet.animationsCount):
+                anim = Section()
 
-            animSection.ID = i
+                anim.ID = animID
 
-            animSection.FrameCount = setObj.infoBlock.ReadUShort()
-            animSection.FrameRate = setObj.infoBlock.ReadUShort()
+                anim.FrameCount = animSet.infoBlock.ReadUShort()
+                anim.FrameRate = animSet.infoBlock.ReadUShort()
+                anim.Frames = [FrameSection()] * anim.FrameCount
 
-            setObj.infoBlock.ReadUInt()  # Seems to be always NULL
+                animSet.infoBlock.ReadUInt()  # Skip 4 bytes, seems to be NULL in every set
 
-            logging.debug(verbose("Set ID: " + str(setObj.ID) + "\t| "
-                                  "Anim ID: " + str(i) + "\t| "
-                                  "Frame Count: " + str(animSection.FrameCount) + "\t| "
-                                  "Frame Rate: " + str(animSection.FrameRate)))
+                logging.debug(verbose("Set ID: " + str(animSet.ID) + "\t| "
+                                      "Anim ID: " + str(anim.ID) + "\t| "
+                                      "Frame Count: " + str(anim.FrameCount) + "\t| "
+                                      "Frame Rate: " + str(anim.FrameRate)))
 
-            setObj.anims.append(animSection)
+                animSet.anims.append(anim)
 
-    def __convertAnims(self, setObj):
-        if setObj.frameCount > 0:
-            if len(setObj.anims) == 0:
-                logging.warning(warning("Set " + str(setObj.ID) + " has frames but no anims!"))
-                return
+            if animSet.frameCount > 0:
+                if len(animSet.anims) == 0:
+                    logging.error(error("Set has frames, but no animations... File is corrupted!"))
+                    raise ValueError("Set has frames but no animations")
 
-        lastColdspotX = 0
-        lastColdspotY = 0
-        lastHotspotX = 0
-        lastHotspotY = 0
-        lastGunspotX = 0
-        lastGunspotY = 0
+                currentAnim = animSet.anims[0]
+                currentAnimID, currentFrame = (0, 0)
 
-        currentAnim = setObj.anims[0]
-        currentAnimIdx = 0
-        currentFrame = 0
+                for frameID in range(animSet.frameCount):
+                    if currentFrame >= currentAnim.FrameCount:
+                        currentAnimID += 1
 
-        for i in range(setObj.frameCount):
-            if currentFrame >= currentAnim.FrameCount:
-                currentAnimIdx += 1
-                currentAnim = setObj.anims[currentAnimIdx]
-                currentFrame = 0
+                        currentAnim = animSet.anims[currentAnimID]
+                        currentFrame = 0
 
-                while currentAnim.FrameCount == 0 and currentAnimIdx < len(setObj.anims):
-                    currentAnimIdx += 1
-                    currentAnim = setObj.anims[currentAnimIdx]
+                        while currentAnim.FrameCount == 0 and currentAnimID < len(animSet.anims):
+                            currentAnimID += 1
+                            currentAnim = animSet.anims[currentAnimID]
 
-            frame = FrameSection()
+                    frame = currentAnim.Frames[currentFrame]
 
-            frame.SizeX = setObj.frameDataBlock.ReadUShort()
-            frame.SizeY = setObj.frameDataBlock.ReadUShort()
-            frame.ColdspotX = setObj.frameDataBlock.ReadUShort()
-            frame.ColdspotY = setObj.frameDataBlock.ReadUShort()
-            frame.HotspotX = setObj.frameDataBlock.ReadUShort()
-            frame.HotspotY = setObj.frameDataBlock.ReadUShort()
-            frame.GunspotX = setObj.frameDataBlock.ReadUShort()
-            frame.GunspotY = setObj.frameDataBlock.ReadUShort()
+                    frame.SizeX, frame.SizeY = (animSet.frameDataBlock.ReadUShort(),
+                                                animSet.frameDataBlock.ReadUShort())
 
-            frame.ImageAddr = setObj.frameDataBlock.ReadUInt()
-            frame.MaskAddr = setObj.frameDataBlock.ReadUInt()
+                    frame.ColdspotX, frame.ColdspotY = (animSet.frameDataBlock.ReadUShort(),
+                                                        animSet.frameDataBlock.ReadUShort())
 
-            # Adjust normalized position
-            # In the output images, we want to make the hotspot and image size constant
-            currentAnim.NormalizedHotspotX = max(-frame.HotspotX, currentAnim.NormalizedHotspotX)
-            currentAnim.NormalizedHotspotY = max(-frame.HotspotY, currentAnim.NormalizedHotspotY)
+                    frame.HotspotX, frame.HotspotY = (animSet.frameDataBlock.ReadUShort(),
+                                                      animSet.frameDataBlock.ReadUShort())
 
-            currentAnim.LargestOffsetX = max(frame.SizeX + frame.HotspotX, currentAnim.LargestOffsetX)
-            currentAnim.LargestOffsetY = max(frame.SizeY + frame.HotspotY, currentAnim.LargestOffsetY)
+                    frame.GunspotX, frame.GunspotY = (animSet.frameDataBlock.ReadUShort(),
+                                                      animSet.frameDataBlock.ReadUShort())
 
-            currentAnim.AdjustedSizeX = max(currentAnim.NormalizedHotspotX + currentAnim.LargestOffsetX,
-                                            currentAnim.AdjustedSizeX)
-            currentAnim.AdjustedSizeY = max(currentAnim.NormalizedHotspotY + currentAnim.LargestOffsetY,
-                                            currentAnim.AdjustedSizeY)
+                    frame.ImageAddr, frame.MaskAddr = (animSet.frameDataBlock.ReadUInt(),
+                                                       animSet.frameDataBlock.ReadUInt())
 
-            setObj.anims[currentAnimIdx].Frames.append(frame)
+                    # Adjust normalized position
+                    # In the output images, we want to make the hotspot and image size constant.
+                    currentAnim.NormalizedHotspotX = max(-frame.HotspotX, currentAnim.NormalizedHotspotX)
+                    currentAnim.NormalizedHotspotY = max(-frame.HotspotY, currentAnim.NormalizedHotspotY)
 
-            lastColdspotX = frame.ColdspotX
-            lastColdspotY = frame.ColdspotY
-            lastHotspotX = frame.HotspotX
-            lastHotspotY = frame.HotspotY
-            lastGunspotX = frame.GunspotX
-            lastGunspotY = frame.GunspotY
+                    currentAnim.LargestOffsetX = max(frame.SizeX + frame.HotspotX, currentAnim.LargestOffsetX)
+                    currentAnim.LargestOffsetY = max(frame.SizeY + frame.HotspotY, currentAnim.LargestOffsetY)
 
-            currentFrame += 1
+                    currentAnim.AdjustedSizeX = max(currentAnim.NormalizedHotspotX + currentAnim.LargestOffsetX,
+                                                    currentAnim.AdjustedSizeX)
+                    currentAnim.AdjustedSizeY = max(currentAnim.NormalizedHotspotY + currentAnim.LargestOffsetY,
+                                                    currentAnim.AdjustedSizeY)
 
-        # Read the image data for each animation frame
-        for anim in setObj.anims:
-            if anim.FrameCount < len(anim.Frames):
-                logging.warning(warning("Animation " + str(anim.ID) + " frame count in set " + str(setObj.ID) +
-                                        " doesn't match! Expected " + str(anim.FrameCount) + ", but read " +
-                                        str(len(anim.Frames)) + " instead."))
-                break
+                    currentFrame += 1
 
-            for frame in anim.Frames:
-                dpos = frame.ImageAddr + 4
+                # Read the image data for each animation frame
+                for animID in range(animSet.animationsCount):
+                    anim = animSet.anims[animID]
 
-                setObj.imageDataBlock.context.seek(dpos - 4)
-                width = setObj.imageDataBlock.ReadUShort()
+                    if anim.FrameCount != len(anim.Frames):
+                        logging.error(warning("Animation " + str(anim.ID) + " frame count in set " +
+                                              str(animSet.ID) + " doesn't match! (Expected " +
+                                              str(anim.FrameCount) + " frames, but read " +
+                                              str(len(anim.Frames)) + " instead.)"))
+                        raise ValueError("Animation count mismatch")
 
-                setObj.imageDataBlock.context.seek(dpos - 2)
-                height = setObj.imageDataBlock.ReadUShort()
+                    for frame in range(anim.FrameCount):
+                        dpos = anim.Frames[frame].ImageAddr + 4
 
-                frame.DrawTransparent = (width & 0x8000) > 0
+                        animSet.imageDataBlock.context.seek(dpos - 4)
+                        width = animSet.imageDataBlock.ReadUShort()
 
-                pxRead = 0
-                pxTotal = frame.SizeX * frame.SizeY
-                lastOpEmpty = False
+                        animSet.imageDataBlock.context.seek(dpos - 2)
+                        height = animSet.imageDataBlock.ReadUShort()
 
-                imageData = []
+                        frameData = anim.Frames[frame]
+                        frameData.DrawTransparent = (width & 0x8000) > 0
 
-                while pxRead < pxTotal:
-                    if dpos > 0x10000000:
-                        logging.warning(warning("Loading of animation " + str(anim.ID) + " in set " + str(setObj.ID) +
-                                        "failed!"))
-                        break
+                        pxRead = 0
+                        pxTotal = frameData.SizeX * frameData.SizeY
+                        lastOpEmpty = True
 
-                    setObj.imageDataBlock.context.seek(dpos)
-                    op = setObj.imageDataBlock.ReadByte()
+                        imageData = []
 
-                    if op < 0x80:
-                        # Skip the given number of pixels, writing them with the transparent color 0
-                        pxRead += op
+                        while pxRead < pxTotal:
+                            if dpos > 0x10000000:
+                                logging.warning("Loading of animation " + str(anim.ID) + " in set " +
+                                                str(animSet.ID) + " failed! Aborting...")
+                                break
 
-                        while op > 0:
-                            imageData.append(0x00)
-                            op -= 1
+                            animSet.imageDataBlock.context.seek(dpos)
 
-                        dpos += 1
-                    elif op == 0x80:
-                        # Skip until the end of the line
-                        linePxLeft = frame.SizeX - pxRead % frame.SizeX
+                            op = animSet.imageDataBlock.ReadByte()
 
-                        if pxRead % frame.SizeX == 0 and not lastOpEmpty:
-                            linePxLeft = 0
+                            if op < 0x80:
+                                # Skip the given number of pixels, writing them with transparent color 0
+                                pxRead += op
 
-                        pxRead += linePxLeft
+                                while op > 0:
+                                    op -= 1
+                                    imageData.append(0x00)
 
-                        while linePxLeft > 0:
-                            imageData.append(0x00)
-                            linePxLeft -= 1
+                                dpos += 1
+                            elif op == 0x80:
+                                # Skip until the end of the line
+                                linePxLeft = frameData.SizeX - pxRead % frameData.SizeX
 
-                        dpos += 1
-                    else:
-                        # Copy specified amount of pixels (ignoring the high bit)
-                        bytesToRead = op & 0x7F
+                                if pxRead % frameData.SizeX == 0 and not lastOpEmpty:
+                                    linePxLeft = 0
 
-                        setObj.imageDataBlock.context.seek(dpos + 1)
+                                pxRead += linePxLeft
 
-                        for byte in range(bytesToRead):
-                            imageData.append(setObj.imageDataBlock.ReadByte())
+                                while linePxLeft > 0:
+                                    linePxLeft -= 1
+                                    imageData.append(0x00)
 
-                        pxRead += bytesToRead
-                        dpos += bytesToRead + 1
+                                dpos += 1
+                            else:
+                                # Copy specified amount of pixels (ignoring the high bit)
+                                bytesToRead = op & 0x7F
 
-                    lastOpEmpty = op == 0x80
+                                animSet.imageDataBlock.context.seek(dpos + 1)
+                                nextData = animSet.imageDataBlock.ReadRawBytes(bytesToRead)
+                                imageData = imageData + nextData
+
+                                pxRead += bytesToRead
+                                dpos += bytesToRead + 1
+
+                            lastOpEmpty = op == 0x80
+
+                        frameData.ImageData = imageData
+                        frameData.MaskData = [False] * pxTotal
+
+                        dpos = frameData.MaskAddr
+                        pxRead = 0
+
+                        if dpos == 0xFFFFFFFF:  # No mask
+                            continue
+
+                        while pxRead < pxTotal:
+                            animSet.imageDataBlock.context.seek(dpos)
+                            byte = animSet.imageDataBlock.ReadByte()
+
+                            bit = 0
+                            while bit < 8 and (pxRead + bit) < pxTotal:
+                                frameData.MaskData[(pxRead + bit)] = (byte & (1 << (7 - bit))) != 0
+                                bit += 1
+
+                            pxRead += 8
 
     def save(self, outputPath):
         super().save(outputPath)
