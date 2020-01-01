@@ -24,4 +24,11 @@ class DataBlock:
 
     def ReadByte(self):
         return unpack("B", self.context.read(1))[0]
-        return t
+
+    def ReadRawBytes(self, count):
+        bytesArray = []
+
+        for byte in range(count):
+            bytesArray.append(self.ReadByte())
+
+        return bytesArray
