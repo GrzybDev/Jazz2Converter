@@ -15,3 +15,6 @@ class FrameSection:
     MaskAddr = 0
 
     DrawTransparent = False
+
+    ImageData = []
+    MaskData = []
