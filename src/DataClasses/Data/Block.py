@@ -17,13 +17,11 @@ class DataBlock:
         return result.decode()
     
     def ReadUInt(self):
-        t = unpack("I", self.context.read(4))[0]
-        return t
+        return unpack("I", self.context.read(4))[0]
 
     def ReadUShort(self):
-        t = unpack("H", self.context.read(2))[0]
-        return t
+        return unpack("H", self.context.read(2))[0]
 
     def ReadByte(self):
-        t = unpack("B", self.context.read(1))[0]
+        return unpack("B", self.context.read(1))[0]
         return t
