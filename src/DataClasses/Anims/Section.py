@@ -1,15 +1,9 @@
 class Section:
-    ID = 0
-
     FrameCount = 0
     FrameRate = 0
     Frames = []
 
-    NormalizedHotspotX = 0
-    NormalizedHotspotY = 0
-
-    LargestOffsetX = 0
-    LargestOffsetY = 0
-
-    AdjustedSizeX = 0
-    AdjustedSizeY = 0
+    NormalizedHotspotX, NormalizedHotspotY = (0, 0)
+    LargestOffsetX, LargestOffsetY = (0, 0)
+    AdjustedSizeX, AdjustedSizeY = (0, 0)
+    FrameConfigurationX, FrameConfigurationY = (0, 0)
