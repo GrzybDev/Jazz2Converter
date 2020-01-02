@@ -366,7 +366,7 @@ class AnimsConverter(FileConverter):
 
                     animSet.sampleDataBlock.DiscardBytes(sample.totalSize - sample.chunkSize - 12)
 
-                animSet.samples.append(sample)
+                self.samples.append(sample)
 
     def save(self, outputPath):
         super().save(outputPath)
