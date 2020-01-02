@@ -24,6 +24,9 @@ class AnimsConverter(FileConverter):
         self.setCount = 0
         self.setAddresses = []
 
+        self.anims = []
+        self.samples = []
+
     def convert(self):
         super().convert()
 
