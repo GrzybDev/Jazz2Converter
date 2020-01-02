@@ -32,3 +32,6 @@ class DataBlock:
             bytesArray.append(self.ReadByte())
 
         return bytesArray
+
+    def DiscardBytes(self, count):
+        self.context.read(count)
