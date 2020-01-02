@@ -44,14 +44,12 @@ class AnimsConverter(FileConverter):
 
         if self.magic != 0x42494C41:
             logging.warning(warning("Invalid magic number in Anims file! (Expected: " + str(0x42494C41) + ", "
-                                                                                                          "got: " + str(
-                self.magic) + "). Skipping that file..."))
+                                    "got: " + str(self.magic) + "). Skipping that file..."))
             self.finish()
 
         if self.signature != 0x00BEBA00:
             logging.warning(warning("Invalid signature in Anims file! (Expected: " + str(0x00BEBA00) + ", "
-                                                                                                       "got: " + str(
-                self.signature) + "). Skipping that file..."))
+                                    "got: " + str(self.signature) + "). Skipping that file..."))
             self.finish()
 
     def __loadHeader(self):
