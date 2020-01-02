@@ -21,3 +21,4 @@ class Set:
     sampleDataBlock = None
 
     anims = []
+    samples = []
