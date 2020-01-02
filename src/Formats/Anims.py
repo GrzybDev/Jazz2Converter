@@ -303,5 +303,66 @@ class AnimsConverter(FileConverter):
 
                             pxRead += 8
 
+            for soundID in range(animSet.soundsCount):
+                sample = SampleSection()
+                sample.IdInSet = soundID
+
+                sample.totalSize = animSet.sampleDataBlock.ReadUInt()
+                magicRIFF = animSet.sampleDataBlock.ReadUInt()
+
+                sample.chunkSize = animSet.sampleDataBlock.ReadUInt()
+                sample.Format = animSet.sampleDataBlock.ReadUInt() # "ASFF" for 1.20, "AS  " for 1.24
+                sample.isASFF = sample.Format == 0x46465341
+
+                magicSAMP = animSet.sampleDataBlock.ReadUInt()
+                sample.sampSize = animSet.sampleDataBlock.ReadUInt()
+
+                # Skip unknown data
+                animSet.sampleDataBlock.DiscardBytes(40 - (12 if sample.isASFF else 0))
+
+                if sample.isASFF:
+                    # All 1.20 samples seem to be 8-bit. Some of them are among those
+                    # for which 1.24 reads as 24-bit but that might just be a mistake.
+                    animSet.sampleDataBlock.DiscardBytes(2)
+                    sample.Multiplier = 0
+                else:
+                    # for 1.24. 1.20 has "20 40" instead in s0s0 which makes no sense
+                    sample.Multiplier = animSet.sampleDataBlock.ReadUShort()
+
+                # Unknown. s0s0 1.20: 00 80, 1.24: 80 00
+                animSet.sampleDataBlock.DiscardBytes(2)
+
+                sample.payloadSize = animSet.sampleDataBlock.ReadUInt()
+
+                # Padding #2, all zeroes in both
+                animSet.sampleDataBlock.DiscardBytes(8)
+
+                sample.SampleRate = animSet.sampleDataBlock.ReadUInt()
+                sample.actualDataSize = sample.chunkSize - 76 + (12 if sample.isASFF else 0)
+
+                sample.Data = animSet.sampleDataBlock.ReadRawBytes(sample.actualDataSize)
+
+                # Padding #3
+                animSet.sampleDataBlock.DiscardBytes(4)
+
+                if magicRIFF != 0x46464952 or magicSAMP != 0x504D4153:
+                    logging.error(error("Sample has invalid header"))
+                    raise ValueError("Sample has invalid header")
+
+                if len(sample.Data) < sample.actualDataSize:
+                    logging.warning(warning("Sample " + str(sample.IdInSet) + " in set " + str(animSet.ID) + " was "
+                                            "shorter than expected! Expected " + str(sample.actualDataSize) + " bytes, "
+                                            "but read " + str(len(sample.Data)) + " instead."))
+
+                if sample.totalSize > sample.chunkSize + 12:
+                    # Sample data is probably aligned to X bytes since the next sample doesn't always appear right after the first ends.
+                    logging.warning(warning("Adjusting read offset of sample " + str(sample.IdInSet) + " in set " +
+                                            str(animSet.ID) + " by " + str(sample.totalSize - sample.chunkSize - 12) +
+                                            " bytes."))
+
+                    animSet.sampleDataBlock.DiscardBytes(sample.totalSize - sample.chunkSize - 12)
+
+                animSet.samples.append(sample)
+
     def save(self, outputPath):
         super().save(outputPath)
