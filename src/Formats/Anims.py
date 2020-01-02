@@ -148,7 +148,7 @@ class AnimsConverter(FileConverter):
                 anim.FrameRate = animSet.infoBlock.ReadUShort()
                 anim.Frames = [FrameSection()] * anim.FrameCount
 
-                animSet.infoBlock.ReadUInt()  # Skip 4 bytes, seems to be NULL in every set
+                animSet.infoBlock.DiscardBytes(4)  # Skip 4 bytes, seems to be NULL in every set
 
                 logging.debug(verbose("Set ID: " + str(animSet.ID) + "\t| "
                                       "Anim ID: " + str(anim.ID) + "\t| "
