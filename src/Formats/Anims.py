@@ -76,64 +76,60 @@ class AnimsConverter(FileConverter):
 
     def __loadSets(self):
         for setID in range(self.setCount):
-            animSet = Set()
-
             magic = self.file.ReadUInt()
 
-            animSet.ID = setID
+            animationsCount = self.file.ReadByte()
+            soundsCount = self.file.ReadByte()
+            frameCount = self.file.ReadUShort()
+            cumulativeSoundIndex = self.file.ReadUInt()
 
-            animSet.animationsCount = self.file.ReadByte()
-            animSet.soundsCount = self.file.ReadByte()
-            animSet.frameCount = self.file.ReadUShort()
-            animSet.cumulativeSoundIndex = self.file.ReadUInt()
+            infoBlockLengthCompressed = self.file.ReadUInt()
+            infoBlockLengthUncompressed = self.file.ReadUInt()
+            frameDataBlockLengthCompressed = self.file.ReadUInt()
+            frameDataBlockLengthUncompressed = self.file.ReadUInt()
+            imageDataBlockLengthCompressed = self.file.ReadUInt()
+            imageDataBlockLengthUncompressed = self.file.ReadUInt()
+            sampleDataBlockLengthCompressed = self.file.ReadUInt()
+            sampleDataBlockLengthUncompressed = self.file.ReadUInt()
 
-            animSet.infoBlockLengthCompressed = self.file.ReadUInt()
-            animSet.infoBlockLengthUncompressed = self.file.ReadUInt()
-            animSet.frameDataBlockLengthCompressed = self.file.ReadUInt()
-            animSet.frameDataBlockLengthUncompressed = self.file.ReadUInt()
-            animSet.imageDataBlockLengthCompressed = self.file.ReadUInt()
-            animSet.imageDataBlockLengthUncompressed = self.file.ReadUInt()
-            animSet.sampleDataBlockLengthCompressed = self.file.ReadUInt()
-            animSet.sampleDataBlockLengthUncompressed = self.file.ReadUInt()
+            infoBlock = self.file.ReadBytes(infoBlockLengthCompressed)
+            frameDataBlock = self.file.ReadBytes(frameDataBlockLengthCompressed)
+            imageDataBlock = self.file.ReadBytes(imageDataBlockLengthCompressed)
+            sampleDataBlock = self.file.ReadBytes(sampleDataBlockLengthCompressed)
 
-            animSet.infoBlock = self.file.ReadBytes(animSet.infoBlockLengthCompressed)
-            animSet.frameDataBlock = self.file.ReadBytes(animSet.frameDataBlockLengthCompressed)
-            animSet.imageDataBlock = self.file.ReadBytes(animSet.imageDataBlockLengthCompressed)
-            animSet.sampleDataBlock = self.file.ReadBytes(animSet.sampleDataBlockLengthCompressed)
+            infoBlock = zlib.decompress(infoBlock)
+            frameDataBlock = zlib.decompress(frameDataBlock)
+            imageDataBlock = zlib.decompress(imageDataBlock)
+            sampleDataBlock = zlib.decompress(sampleDataBlock)
 
-            animSet.infoBlock = zlib.decompress(animSet.infoBlock)
-            animSet.frameDataBlock = zlib.decompress(animSet.frameDataBlock)
-            animSet.imageDataBlock = zlib.decompress(animSet.imageDataBlock)
-            animSet.sampleDataBlock = zlib.decompress(animSet.sampleDataBlock)
-
-            if len(animSet.infoBlock) != animSet.infoBlockLengthUncompressed:
+            if len(infoBlock) != infoBlockLengthUncompressed:
                 logging.warning(warning("Info block length in set " + str(setID) + " is incorrect (expected " +
-                                        str(animSet.infoBlockLengthUncompressed) + ", " +
-                                        "got: " + str(len(animSet.infoBlock)) + ") Skipping that set..."))
+                                        str(infoBlockLengthUncompressed) + ", " +
+                                        "got: " + str(len(infoBlock)) + ") Skipping that set..."))
                 continue
 
-            if len(animSet.frameDataBlock) != animSet.frameDataBlockLengthUncompressed:
+            if len(frameDataBlock) != frameDataBlockLengthUncompressed:
                 logging.warning(warning("Frame data block length in set " + str(setID) + " is incorrect (expected " +
-                                        str(animSet.frameDataBlockLengthUncompressed) + ", " +
-                                        "got: " + str(len(animSet.frameDataBlock)) + ") Skipping that set..."))
+                                        str(frameDataBlockLengthUncompressed) + ", " +
+                                        "got: " + str(len(frameDataBlock)) + ") Skipping that set..."))
                 continue
 
-            if len(animSet.imageDataBlock) != animSet.imageDataBlockLengthUncompressed:
+            if len(imageDataBlock) != imageDataBlockLengthUncompressed:
                 logging.warning(warning("Image data block length in set " + str(setID) + " is incorrect (expected " +
-                                        str(animSet.imageDataBlockLengthUncompressed) + ", " +
-                                        "got: " + str(len(animSet.imageDataBlock)) + ") Skipping that set..."))
+                                        str(imageDataBlockLengthUncompressed) + ", " +
+                                        "got: " + str(len(imageDataBlock)) + ") Skipping that set..."))
                 continue
 
-            if len(animSet.sampleDataBlock) != animSet.sampleDataBlockLengthUncompressed:
+            if len(sampleDataBlock) != sampleDataBlockLengthUncompressed:
                 logging.warning(warning("Sample data block length in set " + str(setID) + " is incorrect (expected " +
-                                        str(animSet.sampleDataBlockLengthUncompressed) + ", " +
-                                        "got: " + str(len(animSet.sampleDataBlock)) + ") Skipping that set..."))
+                                        str(sampleDataBlockLengthUncompressed) + ", " +
+                                        "got: " + str(len(sampleDataBlock)) + ") Skipping that set..."))
                 continue
 
-            animSet.infoBlock = DataBlock(animSet.infoBlock)
-            animSet.frameDataBlock = DataBlock(animSet.frameDataBlock)
-            animSet.imageDataBlock = DataBlock(animSet.imageDataBlock)
-            animSet.sampleDataBlock = DataBlock(animSet.sampleDataBlock)
+            infoBlock = DataBlock(infoBlock)
+            frameDataBlock = DataBlock(frameDataBlock)
+            imageDataBlock = DataBlock(imageDataBlock)
+            sampleDataBlock = DataBlock(sampleDataBlock)
 
             anims = []
 
@@ -142,60 +138,58 @@ class AnimsConverter(FileConverter):
                                         "Skipping that set..."))
                 continue
 
-            for animID in range(animSet.animationsCount):
+            for animID in range(animationsCount):
                 anim = Section()
 
-                anim.ID = animID
+                anim.FrameCount = infoBlock.ReadUShort()
+                anim.FrameRate = infoBlock.ReadUShort()
+                anim.Frames = []
 
-                anim.FrameCount = animSet.infoBlock.ReadUShort()
-                anim.FrameRate = animSet.infoBlock.ReadUShort()
-                anim.Frames = [FrameSection()] * anim.FrameCount
+                infoBlock.DiscardBytes(4)  # Skip 4 bytes, seems to be NULL in every set
 
-                animSet.infoBlock.DiscardBytes(4)  # Skip 4 bytes, seems to be NULL in every set
-
-                logging.debug(verbose("Set ID: " + str(animSet.ID) + "\t| "
-                                      "Anim ID: " + str(anim.ID) + "\t| "
+                logging.debug(verbose("Set ID: " + str(setID) + "\t| "
+                                      "Anim ID: " + str(animID) + "\t| "
                                       "Frame Count: " + str(anim.FrameCount) + "\t| "
                                       "Frame Rate: " + str(anim.FrameRate)))
 
                 self.anims.append(anim)
                 anims.append(anim)
 
-            if animSet.frameCount > 0:
-                if len(animSet.anims) == 0:
+            if frameCount > 0:
+                if len(anims) == 0:
                     logging.error(error("Set has frames, but no animations... File is corrupted!"))
                     raise ValueError("Set has frames but no animations")
 
-                currentAnim = animSet.anims[0]
+                currentAnim = anims[0]
                 currentAnimID, currentFrame = (0, 0)
 
-                for frameID in range(animSet.frameCount):
+                for frameID in range(frameCount):
                     if currentFrame >= currentAnim.FrameCount:
                         currentAnimID += 1
 
-                        currentAnim = animSet.anims[currentAnimID]
+                        currentAnim = anims[currentAnimID]
                         currentFrame = 0
 
-                        while currentAnim.FrameCount == 0 and currentAnimID < len(animSet.anims):
+                        while currentAnim.FrameCount == 0 and currentAnimID < len(anims):
                             currentAnimID += 1
-                            currentAnim = animSet.anims[currentAnimID]
+                            currentAnim = anims[currentAnimID]
 
-                    frame = currentAnim.Frames[currentFrame]
+                    frame = FrameSection()
 
-                    frame.SizeX, frame.SizeY = (animSet.frameDataBlock.ReadUShort(),
-                                                animSet.frameDataBlock.ReadUShort())
+                    frame.SizeX, frame.SizeY = (frameDataBlock.ReadUShort(),
+                                                frameDataBlock.ReadUShort())
 
-                    frame.ColdspotX, frame.ColdspotY = (animSet.frameDataBlock.ReadUShort(),
-                                                        animSet.frameDataBlock.ReadUShort())
+                    frame.ColdspotX, frame.ColdspotY = (frameDataBlock.ReadUShort(),
+                                                        frameDataBlock.ReadUShort())
 
-                    frame.HotspotX, frame.HotspotY = (animSet.frameDataBlock.ReadUShort(),
-                                                      animSet.frameDataBlock.ReadUShort())
+                    frame.HotspotX, frame.HotspotY = (frameDataBlock.ReadUShort(),
+                                                      frameDataBlock.ReadUShort())
 
-                    frame.GunspotX, frame.GunspotY = (animSet.frameDataBlock.ReadUShort(),
-                                                      animSet.frameDataBlock.ReadUShort())
+                    frame.GunspotX, frame.GunspotY = (frameDataBlock.ReadUShort(),
+                                                      frameDataBlock.ReadUShort())
 
-                    frame.ImageAddr, frame.MaskAddr = (animSet.frameDataBlock.ReadUInt(),
-                                                       animSet.frameDataBlock.ReadUInt())
+                    frame.ImageAddr, frame.MaskAddr = (frameDataBlock.ReadUInt(),
+                                                       frameDataBlock.ReadUInt())
 
                     # Adjust normalized position
                     # In the output images, we want to make the hotspot and image size constant.
@@ -211,14 +205,15 @@ class AnimsConverter(FileConverter):
                                                     currentAnim.AdjustedSizeY)
 
                     currentFrame += 1
+                    currentAnim.Frames.append(frame)
 
                 # Read the image data for each animation frame
-                for animID in range(animSet.animationsCount):
-                    anim = animSet.anims[animID]
+                for animID in range(animationsCount):
+                    anim = anims[animID]
 
                     if anim.FrameCount != len(anim.Frames):
-                        logging.error(warning("Animation " + str(anim.ID) + " frame count in set " +
-                                              str(animSet.ID) + " doesn't match! (Expected " +
+                        logging.error(warning("Animation " + str(animID) + " frame count in set " +
+                                              str(setID) + " doesn't match! (Expected " +
                                               str(anim.FrameCount) + " frames, but read " +
                                               str(len(anim.Frames)) + " instead.)"))
                         raise ValueError("Animation count mismatch")
@@ -226,11 +221,11 @@ class AnimsConverter(FileConverter):
                     for frame in range(anim.FrameCount):
                         dpos = anim.Frames[frame].ImageAddr + 4
 
-                        animSet.imageDataBlock.context.seek(dpos - 4)
-                        width = animSet.imageDataBlock.ReadUShort()
+                        imageDataBlock.context.seek(dpos - 4)
+                        width = imageDataBlock.ReadUShort()
 
-                        animSet.imageDataBlock.context.seek(dpos - 2)
-                        height = animSet.imageDataBlock.ReadUShort()
+                        imageDataBlock.context.seek(dpos - 2)
+                        height = imageDataBlock.ReadUShort()
 
                         frameData = anim.Frames[frame]
                         frameData.DrawTransparent = (width & 0x8000) > 0
@@ -243,13 +238,13 @@ class AnimsConverter(FileConverter):
 
                         while pxRead < pxTotal:
                             if dpos > 0x10000000:
-                                logging.warning("Loading of animation " + str(anim.ID) + " in set " +
-                                                str(animSet.ID) + " failed! Aborting...")
+                                logging.warning("Loading of animation " + str(animID) + " in set " +
+                                                str(setID) + " failed! Aborting...")
                                 break
 
-                            animSet.imageDataBlock.context.seek(dpos)
+                            imageDataBlock.context.seek(dpos)
 
-                            op = animSet.imageDataBlock.ReadByte()
+                            op = imageDataBlock.ReadByte()
 
                             if op < 0x80:
                                 # Skip the given number of pixels, writing them with transparent color 0
@@ -278,8 +273,8 @@ class AnimsConverter(FileConverter):
                                 # Copy specified amount of pixels (ignoring the high bit)
                                 bytesToRead = op & 0x7F
 
-                                animSet.imageDataBlock.context.seek(dpos + 1)
-                                nextData = animSet.imageDataBlock.ReadRawBytes(bytesToRead)
+                                imageDataBlock.context.seek(dpos + 1)
+                                nextData = imageDataBlock.ReadRawBytes(bytesToRead)
                                 imageData = imageData + nextData
 
                                 pxRead += bytesToRead
@@ -297,8 +292,8 @@ class AnimsConverter(FileConverter):
                             continue
 
                         while pxRead < pxTotal:
-                            animSet.imageDataBlock.context.seek(dpos)
-                            byte = animSet.imageDataBlock.ReadByte()
+                            imageDataBlock.context.seek(dpos)
+                            byte = imageDataBlock.ReadByte()
 
                             bit = 0
                             while bit < 8 and (pxRead + bit) < pxTotal:
@@ -307,64 +302,64 @@ class AnimsConverter(FileConverter):
 
                             pxRead += 8
 
-            for soundID in range(animSet.soundsCount):
+            for soundID in range(soundsCount):
                 sample = SampleSection()
-                sample.IdInSet = soundID
 
-                sample.totalSize = animSet.sampleDataBlock.ReadUInt()
-                magicRIFF = animSet.sampleDataBlock.ReadUInt()
+                sample.totalSize = sampleDataBlock.ReadUInt()
+                magicRIFF = sampleDataBlock.ReadUInt()
 
-                sample.chunkSize = animSet.sampleDataBlock.ReadUInt()
-                sample.Format = animSet.sampleDataBlock.ReadUInt() # "ASFF" for 1.20, "AS  " for 1.24
+                sample.chunkSize = sampleDataBlock.ReadUInt()
+                sample.Format = sampleDataBlock.ReadUInt() # "ASFF" for 1.20, "AS  " for 1.24
                 sample.isASFF = sample.Format == 0x46465341
 
-                magicSAMP = animSet.sampleDataBlock.ReadUInt()
-                sample.sampSize = animSet.sampleDataBlock.ReadUInt()
+                magicSAMP = sampleDataBlock.ReadUInt()
+                sample.sampSize = sampleDataBlock.ReadUInt()
 
                 # Skip unknown data
-                animSet.sampleDataBlock.DiscardBytes(40 - (12 if sample.isASFF else 0))
+                sampleDataBlock.DiscardBytes(40 - (12 if sample.isASFF else 0))
 
                 if sample.isASFF:
                     # All 1.20 samples seem to be 8-bit. Some of them are among those
                     # for which 1.24 reads as 24-bit but that might just be a mistake.
-                    animSet.sampleDataBlock.DiscardBytes(2)
+                    sampleDataBlock.DiscardBytes(2)
                     sample.Multiplier = 0
                 else:
                     # for 1.24. 1.20 has "20 40" instead in s0s0 which makes no sense
-                    sample.Multiplier = animSet.sampleDataBlock.ReadUShort()
+                    sample.Multiplier = sampleDataBlock.ReadUShort()
 
                 # Unknown. s0s0 1.20: 00 80, 1.24: 80 00
-                animSet.sampleDataBlock.DiscardBytes(2)
+                sampleDataBlock.DiscardBytes(2)
 
-                sample.payloadSize = animSet.sampleDataBlock.ReadUInt()
+                sample.payloadSize = sampleDataBlock.ReadUInt()
 
                 # Padding #2, all zeroes in both
-                animSet.sampleDataBlock.DiscardBytes(8)
+                sampleDataBlock.DiscardBytes(8)
 
-                sample.SampleRate = animSet.sampleDataBlock.ReadUInt()
+                sample.SampleRate = sampleDataBlock.ReadUInt()
                 sample.actualDataSize = sample.chunkSize - 76 + (12 if sample.isASFF else 0)
 
-                sample.Data = animSet.sampleDataBlock.ReadRawBytes(sample.actualDataSize)
+                sample.Data = sampleDataBlock.ReadRawBytes(sample.actualDataSize)
 
                 # Padding #3
-                animSet.sampleDataBlock.DiscardBytes(4)
+                sampleDataBlock.DiscardBytes(4)
 
                 if magicRIFF != 0x46464952 or magicSAMP != 0x504D4153:
                     logging.error(error("Sample has invalid header"))
                     raise ValueError("Sample has invalid header")
 
                 if len(sample.Data) < sample.actualDataSize:
-                    logging.warning(warning("Sample " + str(sample.IdInSet) + " in set " + str(animSet.ID) + " was "
+                    logging.warning(warning("Sample " + str(soundID) + " in set " + str(setID) + " was "
                                             "shorter than expected! Expected " + str(sample.actualDataSize) + " bytes, "
                                             "but read " + str(len(sample.Data)) + " instead."))
 
                 if sample.totalSize > sample.chunkSize + 12:
-                    # Sample data is probably aligned to X bytes since the next sample doesn't always appear right after the first ends.
-                    logging.warning(warning("Adjusting read offset of sample " + str(sample.IdInSet) + " in set " +
-                                            str(animSet.ID) + " by " + str(sample.totalSize - sample.chunkSize - 12) +
+                    # Sample data is probably aligned to X bytes since the next sample doesn't always appear right
+                    # after the first ends.
+                    logging.warning(warning("Adjusting read offset of sample " + str(soundID) + " in set " +
+                                            str(setID) + " by " + str(sample.totalSize - sample.chunkSize - 12) +
                                             " bytes."))
 
-                    animSet.sampleDataBlock.DiscardBytes(sample.totalSize - sample.chunkSize - 12)
+                    sampleDataBlock.DiscardBytes(sample.totalSize - sample.chunkSize - 12)
 
                 self.samples.append(sample)
 
