@@ -135,6 +135,8 @@ class AnimsConverter(FileConverter):
             animSet.imageDataBlock = DataBlock(animSet.imageDataBlock)
             animSet.sampleDataBlock = DataBlock(animSet.sampleDataBlock)
 
+            anims = []
+
             if magic != 0x4D494E41:
                 logging.warning(warning("Header for set " + str(setID) + " is incorrect (bad magic value!) "
                                         "Skipping that set..."))
@@ -156,7 +158,8 @@ class AnimsConverter(FileConverter):
                                       "Frame Count: " + str(anim.FrameCount) + "\t| "
                                       "Frame Rate: " + str(anim.FrameRate)))
 
-                animSet.anims.append(anim)
+                self.anims.append(anim)
+                anims.append(anim)
 
             if animSet.frameCount > 0:
                 if len(animSet.anims) == 0:
