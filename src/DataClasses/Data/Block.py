@@ -19,6 +19,9 @@ class DataBlock:
     def ReadUInt(self):
         return unpack("I", self.context.read(4))[0]
 
+    def ReadShort(self):
+        return unpack("h", self.context.read(2))[0]
+
     def ReadUShort(self):
         return unpack("H", self.context.read(2))[0]
 
