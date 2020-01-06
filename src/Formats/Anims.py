@@ -423,7 +423,45 @@ class AnimsConverter(FileConverter):
                 Path(path + "/" + str(anim.Set)).mkdir(exist_ok=True)
                 image.save(path + "/" + str(anim.Set) + "/" + str(anim.Anim) + ".png")
 
+    def __extractAudioSamples(self, path):
+        if len(self.samples) > 0:
+            logging.info(info("Now extracting audio samples..."))
+
+            for sample in self.samples:
+                Path(path + "/" + str(sample.Set)).mkdir(exist_ok=True)
+
+                with open(path + "/" + str(sample.Set) + "/" + str(sample.IdInSet) + ".wav", "wb") as sampleFile:
+                    multiplier = int((sample.Multiplier / 4) % 2 + 1)
+
+                    # Create PCM Wave File
+                    # Main header
+                    sampleFile.write(b"RIFF")
+                    sampleFile.write(pack("I", 36 + len(sample.Data)))  # File size
+                    sampleFile.write(b"WAVE")
+
+                    # Format header
+                    sampleFile.write(b"fmt ")
+                    sampleFile.write(pack("I", 16))  # Remaining header length
+                    sampleFile.write(pack("H", 1))  # Format == PCM
+                    sampleFile.write(pack("H", 1))  # Channels
+                    sampleFile.write(pack("I", sample.SampleRate))  # Sample Rate
+                    sampleFile.write(pack("I", sample.SampleRate * multiplier))  # Bytes per second
+                    sampleFile.write(pack("I", multiplier * 0x00080001))
+
+                    # Payload
+                    sampleFile.write(b"data")
+                    sampleFile.write(pack("I", len(sample.Data)))  # Payload length
+
+                    for byte in sample.Data:
+                        try:  # TODO: Fix 256-byte error
+                            sampleFile.write(pack("B", (multiplier << 7) ^ byte))
+                        except Exception:
+                            continue
+
+                    sampleFile.close()
+
     def save(self, outputPath):
         super().save(outputPath)
 
         self.__extractAnimations(outputPath)
+        self.__extractAudioSamples(outputPath)
