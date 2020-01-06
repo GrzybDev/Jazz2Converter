@@ -179,14 +179,14 @@ class AnimsConverter(FileConverter):
                     frame.SizeX, frame.SizeY = (frameDataBlock.ReadUShort(),
                                                 frameDataBlock.ReadUShort())
 
-                    frame.ColdspotX, frame.ColdspotY = (frameDataBlock.ReadUShort(),
-                                                        frameDataBlock.ReadUShort())
+                    frame.ColdspotX, frame.ColdspotY = (frameDataBlock.ReadShort(),
+                                                        frameDataBlock.ReadShort())
 
-                    frame.HotspotX, frame.HotspotY = (frameDataBlock.ReadUShort(),
-                                                      frameDataBlock.ReadUShort())
+                    frame.HotspotX, frame.HotspotY = (frameDataBlock.ReadShort(),
+                                                      frameDataBlock.ReadShort())
 
-                    frame.GunspotX, frame.GunspotY = (frameDataBlock.ReadUShort(),
-                                                      frameDataBlock.ReadUShort())
+                    frame.GunspotX, frame.GunspotY = (frameDataBlock.ReadShort(),
+                                                      frameDataBlock.ReadShort())
 
                     frame.ImageAddr, frame.MaskAddr = (frameDataBlock.ReadUInt(),
                                                        frameDataBlock.ReadUInt())
