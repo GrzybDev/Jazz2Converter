@@ -1,5 +1,4 @@
 class SampleSection:
-    IdInSet = 0
     SampleRate = 0
     Data = []
     Multiplier = 0
