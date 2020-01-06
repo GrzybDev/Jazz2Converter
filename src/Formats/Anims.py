@@ -141,6 +141,8 @@ class AnimsConverter(FileConverter):
             for animID in range(animationsCount):
                 anim = Section()
 
+                anim.Set = setID
+                anim.Anim = animID
                 anim.FrameCount = infoBlock.ReadUShort()
                 anim.FrameRate = infoBlock.ReadUShort()
                 anim.Frames = []
@@ -304,6 +306,9 @@ class AnimsConverter(FileConverter):
 
             for soundID in range(soundsCount):
                 sample = SampleSection()
+
+                sample.Set = setID
+                sample.IdInSet = soundID
 
                 sample.totalSize = sampleDataBlock.ReadUInt()
                 magicRIFF = sampleDataBlock.ReadUInt()
