@@ -373,5 +373,57 @@ class AnimsConverter(FileConverter):
 
                 self.samples.append(sample)
 
+    def __extractAnimations(self, path):
+        if len(self.anims) > 0:
+            logging.info(info("Now extracting animations..."))
+
+            for anim in self.anims:
+                if anim.FrameCount == 0:
+                    continue
+
+                sizeX, sizeY = (anim.AdjustedSizeX, anim.AdjustedSizeY)
+
+                if anim.FrameCount > 1:
+                    rows = max(1, math.ceil(math.sqrt(anim.FrameCount * sizeX / sizeY)))
+                    columns = max(1, math.ceil(anim.FrameCount / rows))
+
+                    while columns * (rows - 1) >= anim.FrameCount:
+                        rows -= 1
+
+                    anim.FrameConfigurationX, anim.FrameConfigurationY = (columns, rows)
+                else:
+                    anim.FrameConfigurationX, anim.FrameConfigurationY = (anim.FrameCount, 1)
+
+                image = Image.new("RGBA", [sizeX, sizeY], 255)
+                imageData = image.load()
+
+                for frameID in range(len(anim.Frames)):
+                    frame = anim.Frames[frameID]
+
+                    offsetX, offsetY = (anim.NormalizedHotspotX + frame.HotspotX,
+                                        anim.NormalizedHotspotY + frame.HotspotY)
+
+                    for y in range(frame.SizeY):
+                        for x in range(frame.SizeX):
+                            targetX, targetY = (int((frameID % anim.FrameConfigurationX) * sizeX + offsetX + x),
+                                                int((frameID / anim.FrameConfigurationX) * sizeY + offsetY + y))
+
+                            colorID = frame.ImageData[frame.SizeX * y + x]
+
+                            alpha = 255
+
+                            if frame.DrawTransparent:
+                                alpha = min(140, alpha)
+
+                            try:  # TODO: Fix that
+                                imageData[targetX, targetY] = (colorID, colorID, colorID, alpha)
+                            except IndexError:
+                                continue
+
+                Path(path + "/" + str(anim.Set)).mkdir(exist_ok=True)
+                image.save(path + "/" + str(anim.Set) + "/" + str(anim.Anim) + ".png")
+
     def save(self, outputPath):
         super().save(outputPath)
+
+        self.__extractAnimations(outputPath)
