@@ -1,5 +1,10 @@
 import logging
+import math
 import zlib
+
+from pathlib import Path
+from PIL import Image
+from struct import pack
 
 from src.Helpers.logger import *
 from src.Utilities import FileConverter
