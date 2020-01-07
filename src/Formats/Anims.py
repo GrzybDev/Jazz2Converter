@@ -396,7 +396,7 @@ class AnimsConverter(FileConverter):
                 else:
                     anim.FrameConfigurationX, anim.FrameConfigurationY = (anim.FrameCount, 1)
 
-                image = Image.new("RGBA", [sizeX, sizeY], 255)
+                image = Image.new("RGBA", [sizeX * anim.FrameConfigurationX, sizeY * anim.FrameConfigurationY], 255)
                 imageData = image.load()
 
                 for frameID in range(len(anim.Frames)):
