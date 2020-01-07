@@ -407,8 +407,8 @@ class AnimsConverter(FileConverter):
 
                     for y in range(frame.SizeY):
                         for x in range(frame.SizeX):
-                            targetX, targetY = (int((frameID % anim.FrameConfigurationX) * sizeX + offsetX + x),
-                                                int((frameID / anim.FrameConfigurationX) * sizeY + offsetY + y))
+                            targetX, targetY = ((frameID % anim.FrameConfigurationX) * sizeX + offsetX + x,
+                                                (frameID / anim.FrameConfigurationX) * sizeY + offsetY + y)
 
                             colorID = frame.ImageData[frame.SizeX * y + x]
 
@@ -417,10 +417,7 @@ class AnimsConverter(FileConverter):
                             if frame.DrawTransparent:
                                 alpha = min(140, alpha)
 
-                            try:  # TODO: Fix that
-                                imageData[targetX, targetY] = (colorID, colorID, colorID, alpha)
-                            except IndexError:
-                                continue
+                            imageData[targetX, targetY] = (colorID, colorID, colorID, alpha)
 
                 Path(path + "/" + str(anim.Set)).mkdir(exist_ok=True)
                 image.save(path + "/" + str(anim.Set) + "/" + str(anim.Anim) + ".png")
@@ -455,15 +452,15 @@ class AnimsConverter(FileConverter):
                     sampleFile.write(pack("I", len(sample.Data)))  # Payload length
 
                     for byte in sample.Data:
-                        try:  # TODO: Fix 256-byte error
-                            sampleFile.write(pack("B", (multiplier << 7) ^ byte))
-                        except Exception:
-                            continue
+                        sampleFile.write(pack("B", (multiplier << 7) ^ byte))
 
                     sampleFile.close()
 
     def save(self, outputPath):
         super().save(outputPath)
 
-        self.__extractAnimations(outputPath)
-        self.__extractAudioSamples(outputPath)
+        try:
+            self.__extractAnimations(outputPath)
+            self.__extractAudioSamples(outputPath)
+        except Exception as e:
+            logging.error(error("Cannot extract animations and audio samples! File might be corrupted! (" + str(e) + ")"))
