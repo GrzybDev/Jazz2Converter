@@ -3,7 +3,7 @@ import zlib
 
 from src.DataClasses.Data import *
 from src.Helpers.logger import *
-from src.Mappings import *
+from src.Mappings import fileTypes
 from src.Utilities import FileConverter
 
 
@@ -113,7 +113,7 @@ class DataConverter(FileConverter):
                                         "That file won't be converted/saved..."))
                 continue
 
-            fileConverter = FileTypes.get(file.type)
+            fileConverter = fileTypes.get(file.type)
 
             if fileConverter is None:
                 logging.warning(warning("Unknown file type: " + str(file.type) + "! "
