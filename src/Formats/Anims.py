@@ -10,6 +10,7 @@ from src.Helpers.logger import *
 from src.Utilities import FileConverter
 from src.DataClasses.Anims import *
 from src.DataClasses.Data.Block import DataBlock
+from src.Mappings import animMapping, sampleMapping
 
 
 class AnimsConverter(FileConverter):
