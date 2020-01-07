@@ -382,7 +382,8 @@ class AnimsConverter(FileConverter):
                 if anim.FrameCount == 0:
                     continue
 
-                sizeX, sizeY = (anim.AdjustedSizeX, anim.AdjustedSizeY)
+                data = animMapping.Get(anim.Set, anim.Anim)
+                sizeX, sizeY = (anim.AdjustedSizeX + data.AddBorder * 2, anim.AdjustedSizeY + data.AddBorder * 2)
 
                 if anim.FrameCount > 1:
                     rows = max(1, math.ceil(math.sqrt(anim.FrameCount * sizeX / sizeY)))
