@@ -1,3 +1,2 @@
 from src.Mappings.FileTypes import fileTypes
-
-FileTypes = fileTypes
+from src.Mappings.AnimMapping import animMapping, sampleMapping
