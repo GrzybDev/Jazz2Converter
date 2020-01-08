@@ -1,11 +1,22 @@
+import logging
+
 from src.DataClasses.Anims.Mappings import Entry
+from src.Helpers.logger import *
+
 
 class AnimSetMapping(object):
 
-    def __init__(self, type):
+    def __init__(self, setType):
         self.map = []
+        self.tempSet = []
 
-    def Get(self, set, anim):
+        if setType == "anim":
+            self.__GetAnimMapping()
+        elif setType == "sample":
+            self.__GetSampleMapping()
+        else:
+            logging.warning(warning("Unknown anim set type! (" + setType + ")"))
+
     def __GetAnimMapping(self):
         # Valid for 1.24
         self.__Add("Unknown", "flame_blue")
