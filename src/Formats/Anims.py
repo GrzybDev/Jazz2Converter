@@ -407,8 +407,8 @@ class AnimsConverter(FileConverter):
 
                     for y in range(frame.SizeY):
                         for x in range(frame.SizeX):
-                            targetX, targetY = ((frameID % anim.FrameConfigurationX) * sizeX + offsetX + x,
-                                                (frameID / anim.FrameConfigurationX) * sizeY + offsetY + y)
+                            targetX, targetY = (int((frameID % anim.FrameConfigurationX)) * sizeX + offsetX + x + data.AddBorder,
+                                                int((frameID / anim.FrameConfigurationX)) * sizeY + offsetY + y + data.AddBorder)
 
                             colorID = frame.ImageData[frame.SizeX * y + x]
 
