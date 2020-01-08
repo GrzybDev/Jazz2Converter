@@ -1,3 +1,4 @@
+import json
 import logging
 import math
 import zlib
@@ -383,6 +384,8 @@ class AnimsConverter(FileConverter):
                     continue
 
                 data = animMapping.Get(anim.Set, anim.Anim)
+
+                palette = json.loads(open(path.replace("Anims", "Data") + "/" + data.Palette + ".json", "r").read())
                 sizeX, sizeY = (anim.AdjustedSizeX + data.AddBorder * 2, anim.AdjustedSizeY + data.AddBorder * 2)
 
                 if anim.FrameCount > 1:
@@ -411,16 +414,15 @@ class AnimsConverter(FileConverter):
                                                 int((frameID / anim.FrameConfigurationX)) * sizeY + offsetY + y + data.AddBorder)
 
                             colorID = frame.ImageData[frame.SizeX * y + x]
-
-                            alpha = 255
+                            color = palette[colorID]
 
                             if frame.DrawTransparent:
-                                alpha = min(140, alpha)
+                                color["a"] = min(140, color["a"])
 
-                            imageData[targetX, targetY] = (colorID, colorID, colorID, alpha)
+                            imageData[targetX, targetY] = (color["r"], color["g"], color["b"], color["a"])
 
-                Path(path + "/" + str(anim.Set)).mkdir(exist_ok=True)
-                image.save(path + "/" + str(anim.Set) + "/" + str(anim.Anim) + ".png")
+                Path(path + "/" + str(data.Category)).mkdir(exist_ok=True)
+                image.save(path + "/" + str(data.Category) + "/" + str(data.Name) + ".png")
 
     def __extractAudioSamples(self, path):
         if len(self.samples) > 0:
