@@ -2,7 +2,7 @@ class Entry:
     Category = "UNKNOWN"
     Name = "UNKNOWN"
 
-    Palette = []
+    Palette = "Std.Palette"
     SkipNormalMap = False
     AddBorder = 0
     AllowRealtimePalette = 0
