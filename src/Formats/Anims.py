@@ -462,6 +462,12 @@ class AnimsConverter(FileConverter):
         super().save(outputPath)
 
         try:
+            with open(outputPath + "/Anim.Mapping.json", "w") as animMappingFile:
+                json.dump(animMapping.GetMappingData(), animMappingFile)
+
+            with open(outputPath + "/Sample.Mapping.json", "w") as sampleMappingFile:
+                json.dump(sampleMapping.GetMappingData(), sampleMappingFile)
+
             self.__extractAnimations(outputPath)
             self.__extractAudioSamples(outputPath)
         except Exception as e:
