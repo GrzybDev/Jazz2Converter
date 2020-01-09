@@ -602,6 +602,21 @@ class AnimSetMapping(object):
             entry.Name = str(setID) + "_" + str(animID)
             return entry
 
+    def GetMappingData(self):
+        endData = {}
+
+        for x in range(len(self.map)):
+            rawSetData = self.map[x]
+            setData = {}
+
+            for y in range(len(rawSetData)):
+                data = rawSetData[y]
+                setData[y] = data.Category + "/" + data.Name
+
+            endData[x] = setData
+
+        return endData
+
 
 animMapping = AnimSetMapping("anim")
 sampleMapping = AnimSetMapping("sample")
