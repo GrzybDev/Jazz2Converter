@@ -994,9 +994,10 @@ class AnimSetMapping(object):
 
         self.tempSet.append(entry)
 
-    def __NextSet(self):
-        self.map.append(self.tempSet)
-        self.tempSet = []
+    def __NextSet(self, skipCount=1):
+        for i in range(skipCount):
+            self.map.append(self.tempSet)
+            self.tempSet = []
 
     def Get(self, setID, animID):
         try:
