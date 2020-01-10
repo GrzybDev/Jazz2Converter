@@ -429,10 +429,11 @@ class AnimsConverter(FileConverter):
             logging.info(info("Now extracting audio samples..."))
 
             for sample in self.samples:
-                Path(path + "/" + str(sample.Set)).mkdir(exist_ok=True)
+                data = sampleMapping.Get(sample.Set, sample.IdInSet)
+                Path(path + "/" + str(data.Category)).mkdir(exist_ok=True)
 
-                with open(path + "/" + str(sample.Set) + "/" + str(sample.IdInSet) + ".wav", "wb") as sampleFile:
-                    multiplier = int((sample.Multiplier / 4) % 2 + 1)
+                with open(path + "/" + str(data.Category) + "/" + str(data.Name) + ".wav", "wb") as sampleFile:
+                    multiplier = int((sample.Multiplier / 4) % 2) + 1
 
                     # Create PCM Wave File
                     # Main header
