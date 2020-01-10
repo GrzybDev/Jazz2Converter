@@ -454,7 +454,8 @@ class AnimsConverter(FileConverter):
                     sampleFile.write(pack("I", len(sample.Data)))  # Payload length
 
                     for byte in sample.Data:
-                        sampleFile.write(pack("B", (multiplier << 7) ^ byte))
+                        finalByte = (multiplier << 7) ^ byte
+                        sampleFile.write(pack("B", byte if finalByte > 255 else finalByte))
 
                     sampleFile.close()
 
