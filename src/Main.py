@@ -1,5 +1,6 @@
 import logging
 import getopt
+import shutil
 import os.path
 
 from src.Helpers.errors import *
@@ -37,6 +38,15 @@ def getBooleanFromUser(question):
         else:
             print(warning("Invalid reply!"))
 
+def clearFolder(output):
+    logging.info(info("Clearing output folder..."))
+
+    try:
+        shutil.rmtree(output)
+        logging.debug(verbose("Folder cleared successfully!"))
+    except Exception as e:
+        logging.debug(verbose("There was an error during clearing folder! (" + str(e) + ")"))
+
 
 def run(arguments):
     logging.getLogger().setLevel(logging.INFO)
@@ -48,6 +58,7 @@ def run(arguments):
     converterArgs = {}
     gameFolder = None
     outputFolder = None
+    clearOutputFolder = False
 
     if len(arguments) > 1:
         knownArgs = {
@@ -57,7 +68,7 @@ def run(arguments):
         }
 
         try:
-            opts, args = getopt.getopt(arguments[1:], "hvi:o:", ["help", "verbose", "input=", "output="
+            opts, args = getopt.getopt(arguments[1:], "hvi:o:c", ["help", "verbose", "input=", "output=", "clear",
                                                                  "skip-languages", "skip-data", "skip-animations"])
         except getopt.GetoptError:
             print(error("Invalid arguments provided!\n"
@@ -73,6 +84,8 @@ def run(arguments):
                 gameFolder = arg
             elif opt in ('-o', "--output"):
                 outputFolder = arg
+            elif opt in ('-c', "--clear"):
+                clearOutputFolder = True
             elif opt in ("--skip-languages",
                          "--skip-data",
                          "--skip-animations"):
@@ -107,9 +120,13 @@ def run(arguments):
         while outputFolder is None:
             outputFolder = input("Please enter path where to put converted files: ")
 
+        clearOutputFolder = getBooleanFromUser("Clear output folder?")
         converterArgs.update(skipLangs=not getBooleanFromUser("Convert language files (*.j2s)?"))
         converterArgs.update(skipData=not getBooleanFromUser("Convert data files (*.j2d)?"))
         converterArgs.update(skipAnims=not getBooleanFromUser("Convert animation files (*.j2a)?"))
+
+    if clearOutputFolder:
+        clearFolder(outputFolder)
 
     Converter(converterArgs, gameFolder, outputFolder).run()
     return SUCCESS_OK
