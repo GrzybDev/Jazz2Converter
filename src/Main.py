@@ -22,6 +22,7 @@ def showHelp():
     print(info("--skip-languages\t|| Skips language files (*.j2s)"))
     print(info("--skip-data\t\t|| Skip data files (*.j2d)"))
     print(info("--skip-animations\t|| Skip animation files (*.j2a)"))
+    print(info("--skip-episodes\t|| Skip episode files (*.j2e)"))
 
     return SUCCESS_OK
 
@@ -64,12 +65,14 @@ def run(arguments):
         knownArgs = {
             "--skip-languages": lambda: converterArgs.update(skipLangs=True),
             "--skip-data": lambda: converterArgs.update(skipData=True),
-            "--skip-animations": lambda: converterArgs.update(skipAnims=True)
+            "--skip-animations": lambda: converterArgs.update(skipAnims=True),
+            "--skip-episodes": lambda: converterArgs.update(skipEpisodes=True)
         }
 
         try:
             opts, args = getopt.getopt(arguments[1:], "hvi:o:c", ["help", "verbose", "input=", "output=", "clear",
-                                                                 "skip-languages", "skip-data", "skip-animations"])
+                                                                 "skip-languages", "skip-data", "skip-animations",
+                                                                 "skip-episodes"])
         except getopt.GetoptError:
             print(error("Invalid arguments provided!\n"
                         "Run program without parameters to enter interactive mode or check --help for usage"))
@@ -88,7 +91,8 @@ def run(arguments):
                 clearOutputFolder = True
             elif opt in ("--skip-languages",
                          "--skip-data",
-                         "--skip-animations"):
+                         "--skip-animations",
+                         "--skip-episodes"):
                 knownArgs.get(opt)()
             else:
                 print(error("Got unknown argument: " + opt + "\n"
@@ -124,6 +128,7 @@ def run(arguments):
         converterArgs.update(skipLangs=not getBooleanFromUser("Convert language files (*.j2s)?"))
         converterArgs.update(skipData=not getBooleanFromUser("Convert data files (*.j2d)?"))
         converterArgs.update(skipAnims=not getBooleanFromUser("Convert animation files (*.j2a)?"))
+        converterArgs.update(skipEpisodes=not getBooleanFromUser("Convert episode files (*.j2e)?"))
 
     if clearOutputFolder:
         clearFolder(outputFolder)
