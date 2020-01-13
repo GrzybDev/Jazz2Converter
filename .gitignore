@@ -125,3 +125,9 @@ dmypy.json
 
 # PyCharm
 .idea/
+
+# VSCode
+.vscode/
+
+# Debug Output
+Output/
