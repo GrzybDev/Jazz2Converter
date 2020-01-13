@@ -67,3 +67,5 @@ class Converter(object):
         self.convert("skipData", "Data", "j2d")
         self.convert("skipAnims", "Anims", "j2a")
         self.convert("skipEpisodes", "Episodes", "j2e")
+
+        logging.info(info("Finished conversions!"))
