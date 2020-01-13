@@ -15,7 +15,8 @@ class Converter(object):
     converters = {
         "j2s": LanguageConverter,
         "j2d": DataConverter,
-        "j2a": AnimsConverter
+        "j2a": AnimsConverter,
+        "j2e": EpisodeConverter
     }
 
     def __init__(self, config, gamePath, outputPath):
@@ -65,3 +66,4 @@ class Converter(object):
         self.convert("skipLangs", "Language", "j2s")
         self.convert("skipData", "Data", "j2d")
         self.convert("skipAnims", "Anims", "j2a")
+        self.convert("skipEpisodes", "Episodes", "j2e")
