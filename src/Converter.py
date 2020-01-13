@@ -55,7 +55,7 @@ class Converter(object):
                     converter.convert()
                     converter.save(outputPath)
                 else:
-                    logging.warning(warning("No valid converter for file type " + type + " "
+                    logging.warning(warning("No valid converter for " + type + " "
                                             "(" + extension + ") is defined!"))
                     break
 
