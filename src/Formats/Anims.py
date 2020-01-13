@@ -385,7 +385,12 @@ class AnimsConverter(FileConverter):
 
                 data = animMapping.Get(anim.Set, anim.Anim)
 
-                palette = json.loads(open(path.replace("Anims", "Data") + "/" + data.Palette + ".json", "r").read())
+                try:
+                    palette = json.loads(open(path.replace("Anims", "Data") + "/" + data.Palette + ".json", "r").read())
+                except Exception as e:
+                    logging.error(error("Cannot find palette file (Data/" + data.Palette + ".json" + "), will use index colors..."))
+                    palette = False
+                
                 sizeX, sizeY = (anim.AdjustedSizeX + data.AddBorder * 2, anim.AdjustedSizeY + data.AddBorder * 2)
 
                 if anim.FrameCount > 1:
@@ -414,7 +419,11 @@ class AnimsConverter(FileConverter):
                                                 int((frameID / anim.FrameConfigurationX)) * sizeY + offsetY + y + data.AddBorder)
 
                             colorID = frame.ImageData[frame.SizeX * y + x]
-                            color = palette[colorID]
+
+                            if palette is not False:
+                                color = palette[colorID]
+                            else:
+                                color = {"a": colorID, "r": colorID, "g": colorID, "b": colorID}
 
                             if frame.DrawTransparent:
                                 color["a"] = min(140, color["a"])
