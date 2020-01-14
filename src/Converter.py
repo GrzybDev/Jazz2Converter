@@ -16,7 +16,11 @@ class Converter(object):
         "j2s": LanguageConverter,
         "j2d": DataConverter,
         "j2a": AnimsConverter,
-        "j2e": EpisodeConverter
+        "j2e": EpisodeConverter,
+        "j2b": MusicConverter,
+        "mod": MusicConverter,
+        "it": MusicConverter,
+        "s3m": MusicConverter   
     }
 
     def __init__(self, config, gamePath, outputPath):
@@ -68,5 +72,6 @@ class Converter(object):
         self.convert("skipData", "Data", ["j2d"])
         self.convert("skipAnims", "Anims", ["j2a"])
         self.convert("skipEpisodes", "Episodes", ["j2e"])
+        self.convert("skipMusic", "Music", ["j2b", "mod", "it", "s3m"])
 
         logging.info(info("Finished conversions!"))
