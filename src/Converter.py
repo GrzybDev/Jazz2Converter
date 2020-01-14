@@ -39,7 +39,7 @@ class Converter(object):
                     logging.critical(error("Output path is not directory!"))
                     sys.exit(ERROR_OUTPUT_IS_NOT_DIRECTORY)
 
-    def convert(self, option, type, extension):
+    def convert(self, option, type, extensions):
         if option in self.config and self.config[option]:
             logging.warning(warning("Skipping " + type + " files..."))
         else:
@@ -48,17 +48,18 @@ class Converter(object):
             outputPath = self.outputPath + "/" + type + "/"
             os.mkdir(outputPath)
 
-            for file in glob.glob(self.gamePath + "/*." + extension):
-                converter = self.converters.get(extension, None)
+            for extension in extensions:
+                for file in glob.glob(self.gamePath + "/*." + extension):
+                    converter = self.converters.get(extension, None)
 
-                if converter is not None:
-                    converter = converter(file)
-                    converter.convert()
-                    converter.save(outputPath)
-                else:
-                    logging.warning(warning("No valid converter for " + type + " "
-                                            "(" + extension + ") is defined!"))
-                    break
+                    if converter is not None:
+                        converter = converter(file)
+                        converter.convert()
+                        converter.save(outputPath)
+                    else:
+                        logging.warning(warning("No valid converter for " + type + " "
+                                                "(" + extension + ") is defined!"))
+                        break
 
     def run(self):
         self.__prepare()
