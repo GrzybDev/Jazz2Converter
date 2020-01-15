@@ -132,7 +132,7 @@ def run(arguments):
         converterArgs.update(skipData=not getBooleanFromUser("Convert data files (*.j2d)?"))
         converterArgs.update(skipAnims=not getBooleanFromUser("Convert animation files (*.j2a)?"))
         converterArgs.update(skipEpisodes=not getBooleanFromUser("Convert episode files (*.j2e)?"))
-        converterArgs.update(skipEpisodes=not getBooleanFromUser("Convert music files (*.j2b, *.mod, *.it, *.s3m)?"))
+        converterArgs.update(skipMusic=not getBooleanFromUser("Convert music files (*.j2b, *.mod, *.it, *.s3m)?"))
 
     if clearOutputFolder:
         clearFolder(outputFolder)
