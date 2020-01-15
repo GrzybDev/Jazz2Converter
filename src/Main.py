@@ -24,6 +24,7 @@ def showHelp():
     print(info("--skip-animations\t|| Skip animation files (*.j2a)"))
     print(info("--skip-episodes\t|| Skip episode files (*.j2e)"))
     print(info("--skip-music\t|| Skip music files (*.j2b, *.mod, *.it, *.s3m)"))
+    print(info("--skip-videos\t|| Skip video files (*.j2v)"))
 
     return SUCCESS_OK
 
@@ -68,13 +69,14 @@ def run(arguments):
             "--skip-data": lambda: converterArgs.update(skipData=True),
             "--skip-animations": lambda: converterArgs.update(skipAnims=True),
             "--skip-episodes": lambda: converterArgs.update(skipEpisodes=True),
-            "--skip-music": lambda: converterArgs.update(skipMusic=True)
+            "--skip-music": lambda: converterArgs.update(skipMusic=True),
+            "--skip-videos": lambda: converterArgs.update(skipVideos=True)
         }
 
         try:
             opts, args = getopt.getopt(arguments[1:], "hvi:o:c", ["help", "verbose", "input=", "output=", "clear",
                                                                  "skip-languages", "skip-data", "skip-animations",
-                                                                 "skip-episodes", "skip-music"])
+                                                                 "skip-episodes", "skip-music", "skip-videos"])
         except getopt.GetoptError:
             print(error("Invalid arguments provided!\n"
                         "Run program without parameters to enter interactive mode or check --help for usage"))
@@ -95,7 +97,8 @@ def run(arguments):
                          "--skip-data",
                          "--skip-animations",
                          "--skip-episodes",
-                         "--skip-music"):
+                         "--skip-music",
+                         "--skip-videos"):
                 knownArgs.get(opt)()
             else:
                 print(error("Got unknown argument: " + opt + "\n"
@@ -133,6 +136,7 @@ def run(arguments):
         converterArgs.update(skipAnims=not getBooleanFromUser("Convert animation files (*.j2a)?"))
         converterArgs.update(skipEpisodes=not getBooleanFromUser("Convert episode files (*.j2e)?"))
         converterArgs.update(skipMusic=not getBooleanFromUser("Convert music files (*.j2b, *.mod, *.it, *.s3m)?"))
+        converterArgs.update(skipVideos=not getBooleanFromUser("Convert video files (*.j2v)?"))
 
     if clearOutputFolder:
         clearFolder(outputFolder)
