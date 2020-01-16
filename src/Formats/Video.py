@@ -130,6 +130,7 @@ class VideoConverter(FileConverter):
                             x += 1
 
             frame = Image.frombytes(frame.mode, (frame.width, frame.height), bytes(pixels))
+            frame.putpalette(palette)
             frame.save(self.tempFramesDir.name + "/" + str(frameID) + ".bmp")
     
     def save(self, outputPath):
