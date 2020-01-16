@@ -128,6 +128,7 @@ class VideoConverter(FileConverter):
                         for i in range(u):
                             pixels[y * self.Width + x] = pixels[n]
                             n += 1
+                            x += 1
 
             frame = Image.frombytes(frame.mode, (frame.width, frame.height), bytes(pixels))
             frame.save(self.tempFramesDir.name + "/" + str(frameID) + ".bmp")
