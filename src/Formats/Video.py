@@ -136,11 +136,16 @@ class VideoConverter(FileConverter):
     def save(self, outputPath):
         super().save(outputPath)
 
+        defaultDuration = self.TotalFrames / 25
+        correctDuration = self.DelayBetweenFrames * self.TotalFrames / 1000
+        correction = 1 + (correctDuration - defaultDuration) / defaultDuration
+
         try:
             logging.info("Now optimizing video file using FFMpeg...")
             subprocess.call(["ffmpeg",
                              "-i", self.tempFramesDir.name + "/%d.bmp",
                              "-pix_fmt", "yuv420p",
+                             "-filter:v", "setpts=" + str(correction) + "*PTS",
                              outputPath + os.path.splitext(os.path.basename(self.path))[0] + ".mp4"])
         except FileNotFoundError:
             logging.error(error("FFMpeg is not accessible, please install it system-wise or place it in current folder!"))
