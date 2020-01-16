@@ -139,8 +139,6 @@ class VideoConverter(FileConverter):
         try:
             logging.info("Now optimizing video file using FFMpeg...")
             subprocess.call(["ffmpeg",
-                             "-f", "image2",
-                             "-r", str(self.DelayBetweenFrames),
                              "-i", self.tempFramesDir.name + "/%d.bmp",
                              "-pix_fmt", "yuv420p",
                              outputPath + os.path.splitext(os.path.basename(self.path))[0] + ".mp4"])
