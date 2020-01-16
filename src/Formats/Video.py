@@ -102,12 +102,12 @@ class VideoConverter(FileConverter):
             pixels = bytearray(frame.tobytes())
 
             if self.Blocks[0].Data.ReadByte() == 1:
-                for i in range(256):
-                    palette.append({"R": self.Blocks[3].Data.ReadByte(),
-                                    "G": self.Blocks[3].Data.ReadByte(),
-                                    "B": self.Blocks[3].Data.ReadByte(),
-                                    "A": self.Blocks[3].Data.ReadByte()})
-                    frame.palette = palette
+                palette = []
+
+                for color in range(256):
+                    palette = palette + [self.Blocks[3].Data.ReadByte(),
+                                         self.Blocks[3].Data.ReadByte(),
+                                         self.Blocks[3].Data.ReadUShort()]
             
             for y in range(self.Height):
                 color = 0
