@@ -96,7 +96,6 @@ class VideoConverter(FileConverter):
         frame = Image.new("RGBA", [self.Width, self.Height], 255)
         frameID = 0
         palette = []
-        stride = self.Width * 4
         self.tempFramesDir = tempfile.TemporaryDirectory()
 
         for frameID in range(self.TotalFrames):
