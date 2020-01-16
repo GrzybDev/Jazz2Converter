@@ -145,7 +145,7 @@ class VideoConverter(FileConverter):
             subprocess.call(["ffmpeg",
                              "-i", self.tempFramesDir.name + "/%d.bmp",
                              "-pix_fmt", "yuv420p",
-                             "-filter:v", "setpts=" + str(correction) + "*PTS",
+                             "-filter:v", "setpts=" + str(correction) + "*PTS,fps=60",
                              outputPath + os.path.splitext(os.path.basename(self.path))[0] + ".mp4"])
         except FileNotFoundError:
             logging.error(error("FFMpeg is not accessible, please install it system-wise or place it in current folder!"))
