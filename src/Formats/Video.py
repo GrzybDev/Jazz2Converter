@@ -119,14 +119,14 @@ class VideoConverter(FileConverter):
                         u = self.Blocks[0].Data.ReadUShort() if color == 0 else color
 
                         for i in range(u):
-                            pixels[y * stride + x] = self.Blocks[3].Data.ReadByte()
+                            pixels[y * self.Width + x] = self.Blocks[3].Data.ReadByte()
                             x += 1
                     else:
                         u = self.Blocks[0].Data.ReadUShort() if color == 0x81 else color - 106
-                        n = self.Blocks[1].Data.ReadUShort() + (self.Blocks[2].Data.ReadByte() + y - 127) * stride
+                        n = self.Blocks[1].Data.ReadUShort() + (self.Blocks[2].Data.ReadByte() + y - 127) * self.Width
 
                         for i in range(u):
-                            pixels[y * stride + x] = pixels[n]
+                            pixels[y * self.Width + x] = pixels[n]
                             n += 1
 
             frame = Image.frombytes(frame.mode, (frame.width, frame.height), bytes(pixels))
