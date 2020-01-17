@@ -93,7 +93,7 @@ class VideoConverter(FileConverter):
                 break
     
     def __ExtractFrames(self):
-        frame = Image.new("P", [self.Width, self.Height], 255)
+        frame = Image.new("P", [self.Width, self.Height], 0)
         frameID = 0
         palette = []
         self.tempFramesDir = tempfile.TemporaryDirectory()
