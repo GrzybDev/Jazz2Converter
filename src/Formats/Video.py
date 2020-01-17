@@ -100,6 +100,10 @@ class VideoConverter(FileConverter):
 
         for frameID in range(self.TotalFrames):
             pixels = bytearray(frame.tobytes())
+            copy = []
+
+            for x in range(self.Width * self.Height):
+                copy.append(pixels[x])
 
             if self.Blocks[0].Data.ReadByte() == 1:
                 palette = []
