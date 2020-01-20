@@ -140,11 +140,11 @@ class VideoConverter(FileConverter):
     def save(self, outputPath):
         super().save(outputPath)
 
-        defaultDuration = self.TotalFrames / 25
-        correctDuration = self.DelayBetweenFrames * self.TotalFrames / 1000
-        correction = 1 + (correctDuration - defaultDuration) / defaultDuration
-
         try:
+            defaultDuration = self.TotalFrames / 25
+            correctDuration = self.DelayBetweenFrames * self.TotalFrames / 1000
+            correction = 1 + (correctDuration - defaultDuration) / defaultDuration
+
             logging.info("Now optimizing video file using FFMpeg...")
             subprocess.call(["ffmpeg",
                              "-i", self.tempFramesDir.name + "/%d.bmp",
