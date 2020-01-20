@@ -17,6 +17,7 @@ def showHelp():
     print(info("-v | --verbose\t|| Shows additional debug information"))
     print(info("-i | --input\t|| Sets Jazz Jackrabbit 2 game folder"))
     print(info("-o | --output\t|| Sets converted file path (Converter output folder)"))
+    print(info("-c | --clear\t|| Clears output folder before conversion (to prevent folder is not empty errors)"))
     print("\n")
     print(info("Converter options:"))
     print(info("--skip-languages\t|| Skips language files (*.j2s)"))
