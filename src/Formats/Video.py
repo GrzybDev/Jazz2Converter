@@ -34,13 +34,13 @@ class VideoConverter(FileConverter):
     def convert(self):
         super().convert()
 
-        #try:
-        self.__ReadHeader()
-        self.__ReadBlocks()
+        try:
+            self.__ReadHeader()
+            self.__ReadBlocks()
 
-        self.__ExtractFrames()
-        #except Exception as e:
-        #    logging.error(error("Unexpected error happened during conversion! (" + str(e) + ")")) 
+            self.__ExtractFrames()
+        except Exception as e:
+            logging.error(error("Unexpected error happened during conversion! (" + str(e) + ")")) 
 
     
     def __ReadHeader(self):
