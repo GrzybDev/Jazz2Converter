@@ -28,7 +28,10 @@ class DataBlock:
     def ReadByte(self):
         return unpack("B", self.context.read(1))[0]
 
-    def ReadRawBytes(self, count):
+    def ReadRawBytes(self, count, fromOffset=None):
+        if fromOffset is not None:
+            self.context.seek(fromOffset)
+
         bytesArray = []
 
         for byte in range(count):
