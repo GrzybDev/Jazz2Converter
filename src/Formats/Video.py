@@ -40,9 +40,9 @@ class VideoConverter(FileConverter):
 
             self.__ExtractFrames()
         except Exception as e:
-            logging.error(error("Unexpected error happened during conversion! (" + str(e) + ")")) 
+            logging.error(error("Unexpected error happened during conversion! (" + str(e) + ")"))
+            self.finish()
 
-    
     def __ReadHeader(self):
         magic = self.file.ReadString(8).decode()
 
