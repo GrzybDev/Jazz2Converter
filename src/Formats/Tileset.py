@@ -49,7 +49,10 @@ class TilesetConverter(FileConverter):
     def __readHeader(self):
         headerBlock = DataBlock(self.file.ReadBytes(82))
 
-        if (magicValue := headerBlock.ReadUInt()) == 0x454C4954 and (signature := headerBlock.ReadUInt()) == 0xAFBEADDE:
+        magicValue = headerBlock.ReadUInt()
+        signature = headerBlock.ReadUInt()
+
+        if magicValue == 0x454C4954 and signature == 0xAFBEADDE:
             self.name = headerBlock.ReadString(32, True)
             self.version = headerBlock.ReadUShort()
             
