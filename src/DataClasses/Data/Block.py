@@ -41,3 +41,6 @@ class DataBlock:
 
     def DiscardBytes(self, count):
         self.context.read(count)
+
+    def ReadBool(self):
+        return unpack("?", self.context.read(1))[0]
