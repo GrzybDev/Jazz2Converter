@@ -17,6 +17,7 @@ class TilesetConverter(FileConverter):
         self.palette = []
         self.tiles = []
         self.tileCount = 0
+        self.maxTilesCount = 0
 
         self.recordedSize = 0
         self.recordedCRC = 0
