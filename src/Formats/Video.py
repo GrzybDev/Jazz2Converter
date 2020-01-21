@@ -114,10 +114,10 @@ class VideoConverter(FileConverter):
                                          self.Blocks[3].Data.ReadUShort()]
             
             for y in range(self.Height):
-                c = 0
+                c = self.Blocks[0].Data.ReadByte()
                 x = 0
 
-                while (c := self.Blocks[0].Data.ReadByte()) != 128:
+                while c != 128:
                     if c < 128:
                         u = self.Blocks[0].Data.ReadUShort() if c == 0 else c
 
