@@ -75,26 +75,26 @@ class TilesetConverter(FileConverter):
             self.maskBlock = self.file.ReadString(self.maskBlockPackedSize)
 
             if len(self.infoBlock) != self.infoBlockPackedSize \
-                or len(self.imageBlock) != self.imageBlockPackedSize \
-                or len(self.alphaBlock) != self.alphaBlockPackedSize \
-                or len(self.maskBlock) != self.maskBlockPackedSize:
+                    or len(self.imageBlock) != self.imageBlockPackedSize \
+                    or len(self.alphaBlock) != self.alphaBlockPackedSize \
+                    or len(self.maskBlock) != self.maskBlockPackedSize:
                 logging.error(error("File is incomplete or corrupted!"))
                 self.finish()
                 return
-            
+
             self.infoBlock = zlib.decompress(self.infoBlock)
             self.imageBlock = zlib.decompress(self.imageBlock)
             self.alphaBlock = zlib.decompress(self.alphaBlock)
             self.maskBlock = zlib.decompress(self.maskBlock)
 
             if len(self.infoBlock) != self.infoBlockUnpackedSize \
-                or len(self.imageBlock) != self.imageBlockUnpackedSize \
-                or len(self.alphaBlock) != self.alphaBlockUnpackedSize \
-                or len(self.maskBlock) != self.maskBlockUnpackedSize:
+                    or len(self.imageBlock) != self.imageBlockUnpackedSize \
+                    or len(self.alphaBlock) != self.alphaBlockUnpackedSize \
+                    or len(self.maskBlock) != self.maskBlockUnpackedSize:
                 logging.error(error("Incorrect block sizes after decompression!!"))
                 self.finish()
                 return
-            
+
             self.infoBlock = DataBlock(self.infoBlock)
             self.imageBlock = DataBlock(self.imageBlock)
             self.alphaBlock = DataBlock(self.alphaBlock)
