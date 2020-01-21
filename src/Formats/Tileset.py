@@ -41,14 +41,21 @@ class TilesetConverter(FileConverter):
         self.maskBlockUnpackedSize = 0
         self.maskBlock = None
 
-    
     def convert(self):
         super().convert()
 
-        self.file.ReadBytes(180)  # Skip copyright notice
+        try:
+            self.file.ReadBytes(180)  # Skip copyright notice
 
-        self.__readHeader()
-    
+            self.__readHeader()
+
+            self.__LoadMetadata()
+            self.__LoadImageData()
+            self.__LoadMaskData()
+        except Exception as e:
+            logging.error(error("Unexpected error happened during conversion! (" + str(e) + ")"))
+            self.finish()
+
     def __readHeader(self):
         headerBlock = DataBlock(self.file.ReadBytes(82))
 
