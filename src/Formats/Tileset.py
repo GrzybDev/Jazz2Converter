@@ -55,6 +55,7 @@ class TilesetConverter(FileConverter):
         if magicValue == 0x454C4954 and signature == 0xAFBEADDE:
             self.name = headerBlock.ReadString(32, True)
             self.version = headerBlock.ReadUShort()
+            self.maxTilesCount = 1024 if self.version <= 512 else 4096
             
             self.recordedSize = headerBlock.ReadUInt()
             self.recordedCRC = headerBlock.ReadUInt()
