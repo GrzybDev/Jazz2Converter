@@ -103,6 +103,104 @@ class TilesetConverter(FileConverter):
             logging.error(error("Tileset header have invalid magic number or signature!"))
             self.finish()
 
-    
+    def __LoadMetadata(self):
+        for i in range(256):
+            self.palette.append({
+                "R": self.infoBlock.ReadByte(),
+                "G": self.infoBlock.ReadByte(),
+                "B": self.infoBlock.ReadByte(),
+                "A": 255 - self.infoBlock.ReadByte()
+            })
+
+        self.tileCount = self.infoBlock.ReadUInt()
+
+        for i in range(self.maxTilesCount):
+            self.tiles.append(TileSection())
+            self.tiles[i].Opaque = self.infoBlock.ReadBool()
+
+        self.infoBlock.DiscardBytes(self.maxTilesCount)  # Block of unknown bytes, skip
+
+        for i in range(self.maxTilesCount):
+            self.tiles[i].ImageDataOffset = self.infoBlock.ReadUInt()
+
+        self.infoBlock.DiscardBytes(4 * self.maxTilesCount)  # Block of unknown bytes, skip
+
+        for i in range(self.maxTilesCount):
+            self.tiles[i].AlphaDataOffset = self.infoBlock.ReadUInt()
+
+        self.infoBlock.DiscardBytes(4 * self.maxTilesCount)  # Block of unknown bytes, skip
+
+        for i in range(self.maxTilesCount):
+            self.tiles[i].MaskDataOffset = self.infoBlock.ReadUInt()
+
+        self.infoBlock.DiscardBytes(4 * self.maxTilesCount)
+
+    def __LoadImageData(self, usePalette=True):
+        blockSize = 32
+
+        for tile in self.tiles:
+            tile.Image = Image.new("RGBA", [blockSize, blockSize], 255)
+            image = tile.Image.load()
+
+            imageData = self.imageBlock.ReadRawBytes(blockSize * blockSize, tile.ImageDataOffset)
+            alphaMaskData = self.alphaBlock.ReadRawBytes(128, tile.AlphaDataOffset)
+
+            for i in range(blockSize * blockSize):
+                idx = imageData[i]
+
+                if len(alphaMaskData) > 0 and ((alphaMaskData[int(i / 8)] >> (i % 8)) & 0x01) == 0x00:
+                    color = self.palette[0] if usePalette else {"R": 0, "G": 0, "B": 0, "A": 0}
+                else:
+                    color = self.palette[idx] if usePalette else {"R": idx, "G": idx, "B": idx, "A": 0 if idx == 0 else 255}
+
+                image[i % blockSize, i / blockSize] = (color["R"], color["G"], color["B"], color["A"])
+
+    def __LoadMaskData(self):
+        blockSize = 32
+
+        for tile in self.tiles:
+            tile.Mask = Image.new("RGBA", [blockSize, blockSize], 255)
+            mask = tile.Mask.load()
+
+            maskData = self.maskBlock.ReadRawBytes(128, tile.MaskDataOffset)
+
+            for i in range(128):
+                idx = maskData[i]
+
+                for j in range(8):
+                    pixelIdx = 8 * i + j
+
+                    if ((idx >> j) & 0x01) == 0:
+                        mask[pixelIdx % blockSize, pixelIdx / blockSize] = (0, 0, 0, 0)  # Transparent
+                    else:
+                        mask[pixelIdx % blockSize, pixelIdx / blockSize] = (0, 0, 0, 255)  # Black
+
     def save(self, outputPath):
         super().save(outputPath)
+
+        tileSize = 32
+        tilesPerRow = 30
+
+        tilesTexture = Image.new("RGBA", [tileSize * tilesPerRow, int(((self.tileCount - 1) / tilesPerRow + 1)) * tileSize])
+        masksTexture = Image.new("RGBA", [tileSize * tilesPerRow, int(((self.tileCount - 1) / tilesPerRow + 1)) * tileSize])
+        indexTexture = Image.new("RGBA", [tileSize * tilesPerRow, int(((self.tileCount - 1) / tilesPerRow + 1)) * tileSize])
+
+        for i in range(self.maxTilesCount):
+            tile = self.tiles[i]
+
+            tilesTexture.paste(tile.Image, ((i % tilesPerRow) * tileSize, int(i / tilesPerRow) * tileSize))
+            masksTexture.paste(tile.Mask, ((i % tilesPerRow) * tileSize, int(i / tilesPerRow) * tileSize))
+
+        outputPath = outputPath + os.path.splitext(os.path.basename(self.path))[0] + "/"
+        os.mkdir(outputPath)
+
+        tilesTexture.save(outputPath + "Diffuse.png")
+        masksTexture.save(outputPath + "Mask.png")
+
+        self.__LoadImageData(usePalette=False)  # Read file again but this time only save indexes of colors (for normal map)
+        for i in range(self.maxTilesCount):
+            tile = self.tiles[i]
+
+            indexTexture.paste(tile.Image, ((i % tilesPerRow) * tileSize, int(i / tilesPerRow) * tileSize))
+
+        indexTexture.save(outputPath + "Index.png")
