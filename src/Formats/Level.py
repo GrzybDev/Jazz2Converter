@@ -52,6 +52,55 @@ class LevelConverter(FileConverter):
             self.finish()
 
         self.passwordHash = headerBlock.ReadUInt()
+        self.name = headerBlock.ReadString(32, True)
+
+        self.version = headerBlock.ReadUShort()
+        self.MaxSupportedTiles = 1024 if self.version <= 514 else 4096
+        self.MaxSupportedAnims = 128 if self.version <= 514 else 256
+
+        self.recordedSize = headerBlock.ReadUInt()
+        self.recordedCRC = headerBlock.ReadUInt()
+
+        self.infoBlockPackedSize = headerBlock.ReadUInt()
+        self.infoBlockUnpackedSize = headerBlock.ReadUInt()
+        self.eventBlockPackedSize = headerBlock.ReadUInt()
+        self.eventBlockUnpackedSize = headerBlock.ReadUInt()
+        self.dictBlockPackedSize = headerBlock.ReadUInt()
+        self.dictBlockUnpackedSize = headerBlock.ReadUInt()
+        self.layoutBlockPackedSize = headerBlock.ReadUInt()
+        self.layoutBlockUnpackedSize = headerBlock.ReadUInt()
+
+        self.infoBlock = self.file.ReadBytes(self.infoBlockPackedSize)
+        self.eventBlock = self.file.ReadBytes(self.eventBlockPackedSize)
+        self.dictBlock = self.file.ReadBytes(self.dictBlockPackedSize)
+        self.layoutBlock = self.file.ReadBytes(self.layoutBlockPackedSize)
+
+        if len(self.infoBlock) != self.infoBlockPackedSize \
+                or len(self.eventBlock) != self.eventBlockPackedSize \
+                or len(self.dictBlock) != self.dictBlockPackedSize \
+                or len(self.layoutBlock) != self.layoutBlockPackedSize:
+            logging.error(error("File is incomplete or corrupted!"))
+            self.finish()
+            return
+
+        self.infoBlock = zlib.decompress(self.infoBlock)
+        self.eventBlock = zlib.decompress(self.eventBlock)
+        self.dictBlock = zlib.decompress(self.dictBlock)
+        self.layoutBlock = zlib.decompress(self.layoutBlock)
+
+        if len(self.infoBlock) != self.infoBlockUnpackedSize \
+                or len(self.eventBlock) != self.eventBlockUnpackedSize \
+                or len(self.dictBlock) != self.dictBlockUnpackedSize \
+                or len(self.layoutBlock) != self.layoutBlockUnpackedSize:
+            logging.error(error("Incorrect block sizes after decompression!"))
+            self.finish()
+            return
+
+        self.infoBlock = DataBlock(self.infoBlock)
+        self.eventBlock = DataBlock(self.eventBlock)
+        self.dictBlock = DataBlock(self.dictBlock)
+        self.layoutBlock = DataBlock(self.layoutBlock)
+
     def __LoadMetadata(self):
         self.infoBlock.DiscardBytes(9)  # First 9 bytes are JCS coordinates on last save
 
