@@ -29,7 +29,7 @@ class LevelConverter(FileConverter):
 
         self.version = 0
         self.lightingMin, self.lightingStart = (0, 0)
-        self.animCourt = 0
+        self.animCount = 0
         self.verticalMPSplitscreen = False
         self.isMpLevel = False
         self.hasPit, self.hasCTF, self.hasLaps = (False, False, False)
