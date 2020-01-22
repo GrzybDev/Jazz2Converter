@@ -52,6 +52,47 @@ class LevelConverter(FileConverter):
             self.finish()
 
         self.passwordHash = headerBlock.ReadUInt()
+    def __LoadMetadata(self):
+        self.infoBlock.DiscardBytes(9)  # First 9 bytes are JCS coordinates on last save
+
+        self.lightingMin = self.infoBlock.ReadByte()
+        self.lightingStart = self.infoBlock.ReadByte()
+
+        self.animCount = self.infoBlock.ReadUShort()
+
+        self.verticalMPSplitscreen = self.infoBlock.ReadBool()
+        self.isMpLevel = self.infoBlock.ReadBool()
+
+        headerSize = self.infoBlock.ReadUInt()
+        secondLevelName = self.infoBlock.ReadString(32, True)
+
+        if secondLevelName != self.name:
+            logging.error(error("Level name mismatch!"))
+            self.finish()
+            return
+
+        self.tileset = self.infoBlock.ReadString(32, True)
+        self.bonusLevel = self.infoBlock.ReadString(32, True)
+        self.nextLevel = self.infoBlock.ReadString(32, True)
+        self.secretLevel = self.infoBlock.ReadString(32, True)
+        self.music = self.infoBlock.ReadString(32, True)
+
+        self.textEventStrings = []
+
+        for i in range(16):
+            self.textEventStrings.append(self.infoBlock.ReadString(512, True))
+
+        self.levelTokenTextIDs = []
+
+        self.__LoadLayerMetadata()
+
+        self.staticTilesCount = self.infoBlock.ReadUShort()
+
+        if self.MaxSupportedTiles - self.animCount != self.staticTilesCount:
+            logging.error(error("Tile count mismatch!"))
+            self.finish()
+            return
+
     def __LoadLayerMetadata(self):
         self.layers = []
         for i in range(self.LayerCount):
