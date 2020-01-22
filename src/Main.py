@@ -27,6 +27,7 @@ def showHelp():
     print(info("--skip-music\t|| Skip music files (*.j2b, *.mod, *.it, *.s3m)"))
     print(info("--skip-videos\t|| Skip video files (*.j2v)"))
     print(info("--skip-tilesets\t|| Skip tileset files (*.j2t)"))
+    print(info("--skip-levels\t|| Skip level files (*.j2l)"))
 
     return SUCCESS_OK
 
@@ -73,14 +74,15 @@ def run(arguments):
             "--skip-episodes": lambda: converterArgs.update(skipEpisodes=True),
             "--skip-music": lambda: converterArgs.update(skipMusic=True),
             "--skip-videos": lambda: converterArgs.update(skipVideos=True),
-            "--skip-tilesets": lambda: converterArgs.update(skipTilesets=True)
+            "--skip-tilesets": lambda: converterArgs.update(skipTilesets=True),
+            "--skip-levels": lambda: converterArgs.update(skipLevels=True)
         }
 
         try:
             opts, args = getopt.getopt(arguments[1:], "hvi:o:c", ["help", "verbose", "input=", "output=", "clear",
                                                                  "skip-languages", "skip-data", "skip-animations",
                                                                  "skip-episodes", "skip-music", "skip-videos", 
-                                                                 "skip-tilesets"])
+                                                                 "skip-tilesets", "skip-levels"])
         except getopt.GetoptError:
             print(error("Invalid arguments provided!\n"
                         "Run program without parameters to enter interactive mode or check --help for usage"))
@@ -103,7 +105,8 @@ def run(arguments):
                          "--skip-episodes",
                          "--skip-music",
                          "--skip-videos",
-                         "--skip-tilesets"):
+                         "--skip-tilesets",
+                         "--skip-levels"):
                 knownArgs.get(opt)()
             else:
                 print(error("Got unknown argument: " + opt + "\n"
@@ -143,6 +146,7 @@ def run(arguments):
         converterArgs.update(skipMusic=not getBooleanFromUser("Convert music files (*.j2b, *.mod, *.it, *.s3m)?"))
         converterArgs.update(skipVideos=not getBooleanFromUser("Convert video files (*.j2v)?"))
         converterArgs.update(skipTilesets=not getBooleanFromUser("Convert tileset files (*.j2t)?"))
+        converterArgs.update(skipLevels=not getBooleanFromUser("Convert levels files (*.j2l)?"))
 
     if clearOutputFolder:
         clearFolder(outputFolder)
