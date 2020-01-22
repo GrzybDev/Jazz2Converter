@@ -22,7 +22,8 @@ class Converter(object):
         "it": MusicConverter,
         "s3m": MusicConverter,
         "j2v": VideoConverter,
-        "j2t": TilesetConverter
+        "j2t": TilesetConverter,
+        "j2l": LevelConverter
     }
 
     def __init__(self, config, gamePath, outputPath):
@@ -77,5 +78,6 @@ class Converter(object):
         self.convert("skipMusic", "Music", ["j2b", "mod", "it", "s3m"])
         self.convert("skipVideos", "Videos", ["j2v"])
         self.convert("skipTilesets", "Tilesets", ["j2t"])
+        self.convert("skipLevels", "Levels", ["j2l"])
 
         logging.info(info("Finished conversions!"))
