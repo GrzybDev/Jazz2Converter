@@ -101,7 +101,7 @@ class TilesetConverter(FileConverter):
                     or len(self.imageBlock) != self.imageBlockUnpackedSize \
                     or len(self.alphaBlock) != self.alphaBlockUnpackedSize \
                     or len(self.maskBlock) != self.maskBlockUnpackedSize:
-                logging.error(error("Incorrect block sizes after decompression!!"))
+                logging.error(error("Incorrect block sizes after decompression!"))
                 self.finish()
                 return
 
