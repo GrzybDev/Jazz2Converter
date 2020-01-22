@@ -145,7 +145,7 @@ class TilesetConverter(FileConverter):
 
         self.infoBlock.DiscardBytes(4 * self.maxTilesCount)
 
-    def __LoadImageData(self, usePalette=True):
+    def __LoadImageData(self):
         blockSize = 32
 
         for tile in self.tiles:
@@ -159,9 +159,9 @@ class TilesetConverter(FileConverter):
                 idx = imageData[i]
 
                 if len(alphaMaskData) > 0 and ((alphaMaskData[int(i / 8)] >> (i % 8)) & 0x01) == 0x00:
-                    color = self.palette[0] if usePalette else {"R": 0, "G": 0, "B": 0, "A": 0}
+                    color = self.palette[0]
                 else:
-                    color = self.palette[idx] if usePalette else {"R": idx, "G": idx, "B": idx, "A": 0 if idx == 0 else 255}
+                    color = self.palette[idx]
 
                 image[i % blockSize, i / blockSize] = (color["R"], color["G"], color["B"], color["A"])
 
@@ -193,7 +193,6 @@ class TilesetConverter(FileConverter):
 
         tilesTexture = Image.new("RGBA", [tileSize * tilesPerRow, int(((self.tileCount - 1) / tilesPerRow + 1)) * tileSize])
         masksTexture = Image.new("RGBA", [tileSize * tilesPerRow, int(((self.tileCount - 1) / tilesPerRow + 1)) * tileSize])
-        indexTexture = Image.new("RGBA", [tileSize * tilesPerRow, int(((self.tileCount - 1) / tilesPerRow + 1)) * tileSize])
 
         for i in range(self.maxTilesCount):
             tile = self.tiles[i]
@@ -206,11 +205,3 @@ class TilesetConverter(FileConverter):
 
         tilesTexture.save(outputPath + "Diffuse.png")
         masksTexture.save(outputPath + "Mask.png")
-
-        self.__LoadImageData(usePalette=False)  # Read file again but this time only save indexes of colors (for normal map)
-        for i in range(self.maxTilesCount):
-            tile = self.tiles[i]
-
-            indexTexture.paste(tile.Image, ((i % tilesPerRow) * tileSize, int(i / tilesPerRow) * tileSize))
-
-        indexTexture.save(outputPath + "Index.png")
