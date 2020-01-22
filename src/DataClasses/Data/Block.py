@@ -44,3 +44,6 @@ class DataBlock:
 
     def ReadBool(self):
         return unpack("?", self.context.read(1))[0]
+    
+    def ReadEncodedFloat(self):
+        return unpack("i", self.context.read(4))[0] * 1.0 / 65536
