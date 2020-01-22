@@ -5,3 +5,4 @@ from src.Formats.Episode import EpisodeConverter
 from src.Formats.Music import MusicConverter
 from src.Formats.Video import VideoConverter
 from src.Formats.Tileset import TilesetConverter
+from src.Formats.Level import LevelConverter
