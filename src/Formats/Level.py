@@ -52,6 +52,60 @@ class LevelConverter(FileConverter):
             self.finish()
 
         self.passwordHash = headerBlock.ReadUInt()
+    def __LoadLayerMetadata(self):
+        self.layers = []
+        for i in range(self.LayerCount):
+            self.layers.append(LayerSection())
+
+        for i in range(self.LayerCount):
+            self.layers[i].Flags = self.infoBlock.ReadUInt()
+
+        for i in range(self.LayerCount):
+            self.layers[i].Type = self.infoBlock.ReadByte()
+
+        for i in range(self.LayerCount):
+            self.layers[i].Used = self.infoBlock.ReadBool()
+
+        for i in range(self.LayerCount):
+            self.layers[i].Width = self.infoBlock.ReadUInt()
+
+        for i in range(self.LayerCount):
+            self.layers[i].InternalWidth = self.infoBlock.ReadUInt()
+
+        for i in range(self.LayerCount):
+            self.layers[i].Height = self.infoBlock.ReadUInt()
+
+        for i in range(self.LayerCount):
+            self.layers[i].Depth = self.infoBlock.ReadUInt()
+
+        for i in range(self.LayerCount):
+            self.layers[i].DetailLevel = self.infoBlock.ReadByte()
+
+        for i in range(self.LayerCount):
+            self.layers[i].WaveX = self.infoBlock.ReadEncodedFloat()
+
+        for i in range(self.LayerCount):
+            self.layers[i].WaveY = self.infoBlock.ReadEncodedFloat()
+
+        for i in range(self.LayerCount):
+            self.layers[i].SpeedX = self.infoBlock.ReadEncodedFloat()
+
+        for i in range(self.LayerCount):
+            self.layers[i].SpeedY = self.infoBlock.ReadEncodedFloat()
+
+        for i in range(self.LayerCount):
+            self.layers[i].AutoSpeedX = self.infoBlock.ReadEncodedFloat()
+
+        for i in range(self.LayerCount):
+            self.layers[i].AutoSpeedY = self.infoBlock.ReadEncodedFloat()
+
+        for i in range(self.LayerCount):
+            self.layers[i].TexturedBackgroundType = self.infoBlock.ReadByte()
+
+        for i in range(self.LayerCount):
+            self.layers[i].TexturedParams1 = self.infoBlock.ReadByte()
+            self.layers[i].TexturedParams2 = self.infoBlock.ReadByte()
+            self.layers[i].TexturedParams3 = self.infoBlock.ReadByte()
 
 
     def save(self, outputPath):
