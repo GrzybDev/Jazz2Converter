@@ -1,5 +1,6 @@
 import logging
 import os
+import zlib
 
 from src.Helpers.logger import *
 from src.Utilities import FileConverter
