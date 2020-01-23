@@ -197,6 +197,28 @@ class LevelConverter(FileConverter):
             self.layers[i].TexturedParams2 = self.infoBlock.ReadByte()
             self.layers[i].TexturedParams3 = self.infoBlock.ReadByte()
 
+    def __LoadLayers(self):
+        dictLength = int(self.dictBlockUnpackedSize / 8)
+        self.dictionary = [DictionaryEntry() for each in range(dictLength)]
+
+        for entry in self.dictionary:
+            for i in range(4):
+                entry.Tiles.append(self.dictBlock.ReadUShort())
+
+        for layer in self.layers:
+            layer.Tiles = [0 for each in range(layer.InternalWidth * layer.Height)]
+
+            if layer.Used:
+                for y in range(layer.Height):
+                    for x in range(0, layer.InternalWidth, 4):
+                        dictIdx = self.layoutBlock.ReadUShort()
+                        tiles = self.dictionary[dictIdx].Tiles
+
+                        for i in range(4):
+                            if i + x >= layer.Width:
+                                break
+
+                            layer.Tiles[i + x + y * layer.InternalWidth] = tiles[i]
 
     def save(self, outputPath):
         super().save(outputPath)
