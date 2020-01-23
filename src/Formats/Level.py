@@ -197,6 +197,34 @@ class LevelConverter(FileConverter):
             self.layers[i].TexturedParams2 = self.infoBlock.ReadByte()
             self.layers[i].TexturedParams3 = self.infoBlock.ReadByte()
 
+    def __LoadEvents(self):
+        width = self.layers[3].Width
+        height = self.layers[3].Height
+
+        self.events = [TileEventSection() for each in range(width * height)]
+
+        if width <= 0 and height <= 0:
+            return
+
+        for y in range(height):
+            for x in range(width):
+                eventData = self.eventBlock.ReadUInt()
+
+                tileEvent = self.events[x + y * width]
+                tileEvent.EventType = Event(eventData & 0x000000FF)
+                tileEvent.Difficulty = (eventData & 0x00000300) == 0
+                tileEvent.Illuminate = ((eventData & 0x00000400) >> 10) == 1
+                tileEvent.TileParams = (eventData & 0xFFFFF000) >> 12
+
+        if self.events[-1].EventType == Event.MCE:
+            self.hasPit = True
+
+        for event in self.events:
+            if event.EventType == Event.CTF_BASE:
+                self.hasCTF = True
+            elif event.EventType == Event.WARP_ORIGIN:
+                self.hasLaps = True
+
     def __LoadLayers(self):
         dictLength = int(self.dictBlockUnpackedSize / 8)
         self.dictionary = [DictionaryEntry() for each in range(dictLength)]
