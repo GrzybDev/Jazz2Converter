@@ -197,6 +197,24 @@ class LevelConverter(FileConverter):
             self.layers[i].TexturedParams2 = self.infoBlock.ReadByte()
             self.layers[i].TexturedParams3 = self.infoBlock.ReadByte()
 
+    def __LoadAnimatedTiles(self):
+        self.animatedTiles = []
+
+        for i in range(self.animCount):
+            self.animatedTiles.append(AnimatedTileSection())
+            tile = self.animatedTiles[i]
+
+            tile.Delay = self.infoBlock.ReadUShort()
+            tile.DelayJitter = self.infoBlock.ReadUShort()
+            tile.ReverseDelay = self.infoBlock.ReadUShort()
+            tile.IsReverse = self.infoBlock.ReadBool()
+            tile.Speed = self.infoBlock.ReadByte()
+            tile.FrameCount = self.infoBlock.ReadByte()
+            
+            tile.Frames = []
+            for j in range(64):
+                tile.Frames.append(self.infoBlock.ReadUShort())
+
     def __LoadEvents(self):
         width = self.layers[3].Width
         height = self.layers[3].Height
