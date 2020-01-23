@@ -44,6 +44,10 @@ class LevelConverter(FileConverter):
 
         self.__ReadHeader()
 
+        self.__LoadMetadata()
+        self.__LoadEvents()
+        self.__LoadLayers()
+
     def __ReadHeader(self):
         headerBlock = DataBlock(self.file.ReadBytes(82))
 
