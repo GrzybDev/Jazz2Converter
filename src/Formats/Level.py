@@ -6,6 +6,7 @@ from src.Helpers.logger import *
 from src.Utilities import FileConverter
 from src.DataClasses.Level import *
 from src.DataClasses.Data import DataBlock
+from src.Mappings.Event import Event
 
 
 class LevelConverter(FileConverter):
@@ -196,6 +197,27 @@ class LevelConverter(FileConverter):
             self.layers[i].TexturedParams1 = self.infoBlock.ReadByte()
             self.layers[i].TexturedParams2 = self.infoBlock.ReadByte()
             self.layers[i].TexturedParams3 = self.infoBlock.ReadByte()
+
+    def __LoadStaticTileData(self):
+        self.staticTiles = []
+
+        for i in range(self.MaxSupportedTiles):
+            self.staticTiles.append(TilePropertiesSection())
+            tile = self.staticTiles[i]
+
+            tileEvent = self.infoBlock.ReadUInt()
+
+            tile.Event = TileEventSection()
+            tile.Event.EventType = Event(tileEvent & 0x000000FF)
+            tile.Event.Difficulty = (tileEvent & 0x0000C000) >> 14
+            tile.Event.Illuminate = (tileEvent & 0x00002000) >> 13 == 1
+            tile.Event.TileParams = ((tileEvent >> 12) & 0x000FFFF0) | ((tileEvent >> 8) & 0x0000000F)
+
+        for i in range(self.MaxSupportedTiles):
+            self.staticTiles[i].Flipped = self.infoBlock.ReadBool()
+
+        for i in range(self.MaxSupportedTiles):
+            self.staticTiles[i].Type = self.infoBlock.ReadByte()
 
     def __LoadAnimatedTiles(self):
         self.animatedTiles = []
