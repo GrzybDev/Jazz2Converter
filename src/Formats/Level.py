@@ -48,6 +48,38 @@ class LevelConverter(FileConverter):
         self.__LoadEvents()
         self.__LoadLayers()
 
+        # Try to read MLLE data stream
+        mlleHeaderSize = 4 * 4
+        self.mlleHeader = self.file.ReadBytes(mlleHeaderSize)
+
+        if len(self.mlleHeader) == mlleHeaderSize:
+            self.mlleHeader = DataBlock(self.mlleHeader)
+
+            mlleMagic = self.mlleHeader.ReadUInt()
+            if mlleMagic == 0x454C4C4D:
+                self.mlleVersion = self.mlleHeader.ReadUInt()
+
+                self.mlleBlockPackedSize = self.mlleHeader.ReadUInt()
+                self.mlleBlockUnpackedSize = self.mlleHeader.ReadUInt()
+
+                self.mlleBlock = self.file.ReadBytes(self.mlleBlockPackedSize)
+
+                if len(self.mlleBlock) != self.mlleBlockPackedSize:
+                    logging.error(error("File is incomplete or corrupted!"))
+                    self.finish()
+                    return
+
+                self.mlleBlock = zlib.decompress(self.mlleBlock)
+
+                if len(self.mlleBlock) != self.mlleBlockUnpackedSize:
+                    logging.error(error("Invalid MLLE block size after decompression!"))
+                    self.finish()
+                    return
+
+                self.mlleBlock = DataBlock(self.mlleBlock)
+
+                # TODO: Read data from mlleBlock
+
     def __ReadHeader(self):
         headerBlock = DataBlock(self.file.ReadBytes(82))
 
