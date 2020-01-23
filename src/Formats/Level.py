@@ -143,6 +143,10 @@ class LevelConverter(FileConverter):
             self.finish()
             return
 
+        self.__LoadStaticTileData()
+        self.infoBlock.DiscardBytes(self.MaxSupportedTiles)  # The unused XMask field
+        self.__LoadAnimatedTiles()
+
     def __LoadLayerMetadata(self):
         self.layers = []
         for i in range(self.LayerCount):
