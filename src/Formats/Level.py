@@ -399,10 +399,6 @@ class LevelConverter(FileConverter):
                     if tileEvent.Difficulty == 3:
                         flags |= 0x80  # Multiplayer only
 
-                    eventType = None
-                    generatorDelay = 0
-                    generatorFlags = 0
-
                     if tileEvent.EventType == Event.MODIFIER_GENERATOR:
                         # Generators are converted diffirently
                         eventParams = ConvertParamInt(tileEvent.TileParams,
