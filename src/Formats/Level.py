@@ -2,11 +2,14 @@ import logging
 import os
 import zlib
 
+from src.Helpers.EventConverter import ConvertParamInt
 from src.Helpers.logger import *
+from src.Mappings import EventParamType
 from src.Utilities import FileConverter
 from src.DataClasses.Level import *
 from src.DataClasses.Data import DataBlock
 from src.Mappings.Event import Event
+from struct import pack
 
 
 class LevelConverter(FileConverter):
@@ -298,3 +301,116 @@ class LevelConverter(FileConverter):
 
     def save(self, outputPath):
         super().save(outputPath)
+
+        outputPath = outputPath + os.path.splitext(os.path.basename(self.path))[0] + "/"
+        os.mkdir(outputPath)
+
+        for i in range(len(self.layers)):
+            self.__WriteLayer(outputPath + str(i) + ".layer", self.layers[i])
+
+        self.__WriteEvents(outputPath + "Events.data")
+
+    def __WriteLayer(self, outputPath, layer):
+        if not layer.Used:
+            return
+
+        with open(outputPath, "wb") as layerFile:
+            maxTiles = self.MaxSupportedTiles
+            lastTilesetTileIndex = maxTiles - self.animCount
+
+            layerFile.write(pack("I", layer.Width))
+            layerFile.write(pack("I", layer.Height))
+
+            for y in range(layer.Height):
+                for x in range(layer.Width):
+                    tileIdx = layer.Tiles[x + y * layer.InternalWidth]
+
+                    flipX, flipY = (False, False)
+                    if (tileIdx & 0x2000) != 0:
+                        flipY = True
+                        tileIdx -= 0x2000
+
+                    if (tileIdx & ~(maxTiles | (maxTiles - 1))) != 0:
+                        # Fix of bug in updated Psych2.j2l
+                        tileIdx = (tileIdx & (maxTiles | (maxTiles - 1))) | maxTiles
+
+                    if (tileIdx & maxTiles) > 0:
+                        flipX = True
+                        tileIdx -= maxTiles
+
+                    animated = False
+                    if tileIdx >= lastTilesetTileIndex:
+                        animated = True
+                        tileIdx -= lastTilesetTileIndex
+
+                    legacyTranscluent = False
+                    invisible = False
+
+                    if not animated and tileIdx < lastTilesetTileIndex:
+                        legacyTranscluent = self.staticTiles[tileIdx].Type == 1
+                        invisible = self.staticTiles[tileIdx].Type == 3
+
+                    tileFlags = 0
+                    if flipX:
+                        tileFlags |= 0x01
+
+                    if flipY:
+                        tileFlags |= 0x02
+
+                    if animated:
+                        tileFlags |= 0x04
+
+                    if legacyTranscluent:
+                        tileFlags |= 0x10
+                    elif invisible:
+                        tileFlags |= 0x20
+
+                    layerFile.write(pack("H", tileIdx))
+                    layerFile.write(pack("B", tileFlags))
+
+    def __WriteEvents(self, outputPath):
+        width = self.layers[3].Width
+        height = self.layers[3].Height
+
+        with open(outputPath, "wb") as eventFile:
+            eventFile.write(pack("I", width))
+            eventFile.write(pack("I", height))
+
+            for y in range(height):
+                for x in range(width):
+                    tileEvent = self.events[x + y * width]
+
+                    flags = 0
+
+                    if tileEvent.Illuminate:
+                        flags |= 0x04  # Illuminate
+
+                    if tileEvent.Difficulty != 2:
+                        flags |= 0x10  # Difficulty: Easy
+
+                    if tileEvent.Difficulty == 0:
+                        flags |= 0x20  # Difficulty: Normal
+
+                    if tileEvent.Difficulty != 1:
+                        flags |= 0x30  # Difficulty: Hard
+
+                    if tileEvent.Difficulty == 3:
+                        flags |= 0x80  # Multiplayer only
+
+                    eventType = None
+                    generatorDelay = 0
+                    generatorFlags = 0
+
+                    if tileEvent.EventType == Event.MODIFIER_GENERATOR:
+                        # Generators are converted diffirently
+                        eventParams = ConvertParamInt(tileEvent.TileParams,
+                                                      [EventParamType.UInt, 8],  # Event
+                                                      [EventParamType.UInt, 8],  # Delay
+                                                      [EventParamType.Bool, 1])  # Initial Delay
+                        eventType = Event(eventParams[0])
+                        generatorDelay = eventParams[1]
+                        generatorFlags = eventParams[2]
+                    else:
+                        eventType = Event(tileEvent.EventType)
+                        generatorDelay = -1
+                        generatorFlags = 0
