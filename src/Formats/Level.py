@@ -281,8 +281,10 @@ class LevelConverter(FileConverter):
         self.dictionary = [DictionaryEntry() for each in range(dictLength)]
 
         for entry in self.dictionary:
+            entry.Tiles = [0 for each in range(4)]
+
             for i in range(4):
-                entry.Tiles.append(self.dictBlock.ReadUShort())
+                entry.Tiles[i] = self.dictBlock.ReadUShort()
 
         for layer in self.layers:
             layer.Tiles = [0 for each in range(layer.InternalWidth * layer.Height)]
