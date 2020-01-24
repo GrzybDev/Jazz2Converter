@@ -412,3 +412,22 @@ class LevelConverter(FileConverter):
                         eventType = Event(tileEvent.EventType)
                         generatorDelay = -1
                         generatorFlags = 0
+
+                    eventFile.write(pack("H", int(eventType)))
+
+                    if tileEvent.TileParams == 0:
+                        if generatorDelay == -1:
+                            eventFile.write(pack("b", flags | 0x01))
+                        else:
+                            eventFile.write(pack("b", flags | 0x01 | 0x02))
+                            eventFile.write(pack("b", generatorFlags))
+                            eventFile.write(pack("b", generatorDelay))
+                    else:
+                        if generatorDelay == -1:
+                            eventFile.write(pack("b", flags))
+                        else:
+                            eventFile.write(pack("b", flags | 0x02))
+                            eventFile.write(pack("b", generatorFlags))
+                            eventFile.write(pack("b", generatorDelay))
+
+                        eventFile.write(pack("I", tileEvent.TileParams))
