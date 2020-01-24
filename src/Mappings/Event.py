@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import IntEnum
 
 
-class Event(Enum):
+class Event(IntEnum):
     EMPTY = 0x00
 
     # Base events
