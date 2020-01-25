@@ -2,18 +2,18 @@ import logging
 import os
 import zlib
 
-from src.Helpers.EventConverter import ConvertParamInt
+from src.Helpers.EventConverter import EventConverter
 from src.Helpers.logger import *
 from src.Mappings import EventParamType
+from src.Mappings.EventType import EventType
 from src.Utilities import FileConverter
 from src.DataClasses.Level import *
 from src.DataClasses.Data import DataBlock
-from src.Mappings.Event import Event
+from src.Mappings.Jazz2Event import Jazz2Event
 from struct import pack
 
 
 class LevelConverter(FileConverter):
-
     LayerCount = 8
 
     def __init__(self, path):
@@ -219,7 +219,7 @@ class LevelConverter(FileConverter):
             tileEvent = self.infoBlock.ReadUInt()
 
             tile.Event = TileEventSection()
-            tile.Event.EventType = Event(tileEvent & 0x000000FF)
+            tile.Event.EventType = Jazz2Event(tileEvent & 0x000000FF)
             tile.Event.Difficulty = (tileEvent & 0x0000C000) >> 14
             tile.Event.Illuminate = (tileEvent & 0x00002000) >> 13 == 1
             tile.Event.TileParams = ((tileEvent >> 12) & 0x000FFFF0) | ((tileEvent >> 8) & 0x0000000F)
@@ -243,7 +243,7 @@ class LevelConverter(FileConverter):
             tile.IsReverse = self.infoBlock.ReadBool()
             tile.Speed = self.infoBlock.ReadByte()
             tile.FrameCount = self.infoBlock.ReadByte()
-            
+
             tile.Frames = []
             for j in range(64):
                 tile.Frames.append(self.infoBlock.ReadUShort())
@@ -262,18 +262,18 @@ class LevelConverter(FileConverter):
                 eventData = self.eventBlock.ReadUInt()
 
                 tileEvent = self.events[x + y * width]
-                tileEvent.EventType = Event(eventData & 0x000000FF)
+                tileEvent.EventType = Jazz2Event(eventData & 0x000000FF)
                 tileEvent.Difficulty = (eventData & 0x00000300) == 0
                 tileEvent.Illuminate = ((eventData & 0x00000400) >> 10) == 1
                 tileEvent.TileParams = (eventData & 0xFFFFF000) >> 12
 
-        if self.events[-1].EventType == Event.MCE:
+        if self.events[-1].EventType == Jazz2Event.MCE:
             self.hasPit = True
 
         for event in self.events:
-            if event.EventType == Event.CTF_BASE:
+            if event.EventType == Jazz2Event.CTF_BASE:
                 self.hasCTF = True
-            elif event.EventType == Event.WARP_ORIGIN:
+            elif event.EventType == Jazz2Event.WARP_ORIGIN:
                 self.hasLaps = True
 
     def __LoadLayers(self):
@@ -399,17 +399,17 @@ class LevelConverter(FileConverter):
                     if tileEvent.Difficulty == 3:
                         flags |= 0x80  # Multiplayer only
 
-                    if tileEvent.EventType == Event.MODIFIER_GENERATOR:
+                    if tileEvent.EventType == Jazz2Event.MODIFIER_GENERATOR:
                         # Generators are converted diffirently
-                        eventParams = ConvertParamInt(tileEvent.TileParams,
-                                                      [EventParamType.UInt, 8],  # Event
-                                                      [EventParamType.UInt, 8],  # Delay
-                                                      [EventParamType.Bool, 1])  # Initial Delay
-                        eventType = Event(eventParams[0])
+                        eventParams = EventConverter.ConvertParamInt(tileEvent.TileParams,
+                                                                     [[EventParamType.UInt, 8],  # Event
+                                                                      [EventParamType.UInt, 8],  # Delay
+                                                                      [EventParamType.Bool, 1]])  # Initial Delay
+                        eventType = Jazz2Event(eventParams[0])
                         generatorDelay = eventParams[1]
                         generatorFlags = eventParams[2]
                     else:
-                        eventType = Event(tileEvent.EventType)
+                        eventType = Jazz2Event(tileEvent.EventType)
                         generatorDelay = -1
                         generatorFlags = 0
 
