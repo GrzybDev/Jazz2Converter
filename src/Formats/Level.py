@@ -413,21 +413,35 @@ class LevelConverter(FileConverter):
                         generatorDelay = -1
                         generatorFlags = 0
 
-                    eventFile.write(pack("H", int(eventType)))
+                    converted = EventConverter().Convert(self, eventType, tileEvent.TileParams)
 
-                    if tileEvent.TileParams == 0:
+                    # If the event is unsupported or can't be converted, show warning
+                    if eventType != Jazz2Event.EMPTY and converted.Type == EventType.Empty:
+                        logging.warning("Unsupported event found in map " + self.levelToken + \
+                                        " (" + str(eventType) + ")!")
+
+                    eventFile.write(pack("H", int(converted.Type)))
+
+                    if converted.Params is None or all(param == 0 for param in converted.Params):
                         if generatorDelay == -1:
-                            eventFile.write(pack("b", flags | 0x01))
+                            eventFile.write(pack("B", flags | 0x01))
                         else:
-                            eventFile.write(pack("b", flags | 0x01 | 0x02))
-                            eventFile.write(pack("b", generatorFlags))
-                            eventFile.write(pack("b", generatorDelay))
+                            eventFile.write(pack("B", flags | 0x01 | 0x02))
+                            eventFile.write(pack("B", generatorFlags))
+                            eventFile.write(pack("B", generatorDelay))
                     else:
                         if generatorDelay == -1:
-                            eventFile.write(pack("b", flags))
+                            eventFile.write(pack("B", flags))
                         else:
-                            eventFile.write(pack("b", flags | 0x02))
-                            eventFile.write(pack("b", generatorFlags))
-                            eventFile.write(pack("b", generatorDelay))
+                            eventFile.write(pack("B", flags | 0x02))
+                            eventFile.write(pack("B", generatorFlags))
+                            eventFile.write(pack("B", generatorDelay))
 
-                        eventFile.write(pack("I", tileEvent.TileParams))
+                        if len(converted.Params) > 8:
+                            raise ValueError("Event parameter count must be at most 8")
+
+                        for i in range(min(len(converted.Params), 8)):
+                            eventFile.write(pack("H", converted.Params[i]))
+
+                        for i in range(8):
+                            eventFile.write(pack("H", 0))
