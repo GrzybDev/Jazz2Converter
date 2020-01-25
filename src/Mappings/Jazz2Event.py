@@ -1,7 +1,7 @@
 from enum import IntEnum
 
 
-class Event(IntEnum):
+class Jazz2Event(IntEnum):
     EMPTY = 0x00
 
     # Base events
