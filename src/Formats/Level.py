@@ -311,6 +311,7 @@ class LevelConverter(FileConverter):
             self.__WriteLayer(outputPath + str(i) + ".layer", self.layers[i])
 
         self.__WriteEvents(outputPath + "Events.data")
+        self.__WriteAnimatedTiles(outputPath + "Animated.Tiles")
 
     def __WriteLayer(self, outputPath, layer):
         if not layer.Used:
@@ -447,3 +448,49 @@ class LevelConverter(FileConverter):
 
                         for i in range(fillerBytesCount):
                             eventFile.write(pack("H", 0))
+
+    def __WriteAnimatedTiles(self, outputPath):
+        maxTiles = self.MaxSupportedTiles
+        lastTilesetTileIndex = maxTiles - self.animCount
+        
+        with open(outputPath, "wb") as tilesFile:
+            tilesFile.write(pack("I", len(self.animatedTiles)))
+            
+            for tile in self.animatedTiles:
+                tilesFile.write(pack("H", tile.FrameCount))
+                
+                for i in range(tile.FrameCount):
+                    flipX, flipY = (False, False)
+                    tileIdx = tile.Frames[i]
+                    
+                    if (tileIdx & maxTiles) > 0:
+                        flipX = True
+                        tileIdx -= maxTiles
+                    
+                    if tileIdx >= lastTilesetTileIndex:
+                        fixFrames = self.animatedTiles[tileIdx - lastTilesetTileIndex].Frames
+                        logging.warning(warning("Level " + self.levelToken + " has animated tile in animated tile (" + str(tileIdx - lastTilesetTileIndex) + " -> " + str(fixFrames[0]) + ")! Applying quick tile redirection."))
+                        tileIdx = fixFrames[0]
+
+                    tileFlags = 0x00
+
+                    if flipX:
+                        tileFlags |= 0x01  # Flip X
+
+                    if flipY:
+                        tileFlags |= 0x02  # Flip Y
+
+                    if self.staticTiles[tile.Frames[i]].Type == 1:
+                        tileFlags |= 0x10  # Legacy Transcluent
+                    elif self.staticTiles[tile.Frames[i]].Type == 3:
+                        tileFlags |= 0x20  # Invisible
+
+                    tilesFile.write(pack("H", tileIdx))
+                    tilesFile.write(pack("B", tileFlags))
+
+                reverse = 1 if tile.IsReverse else 0
+                tilesFile.write(pack("B", tile.Speed))
+                tilesFile.write(pack("H", tile.Delay))
+                tilesFile.write(pack("H", tile.DelayJitter))
+                tilesFile.write(pack("B", reverse))
+                tilesFile.write(pack("H", tile.ReverseDelay))
