@@ -1,20 +1,15 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class FrameSection:
-    SizeX = 0
-    SizeY = 0
+    SizeX, SizeY = (0, 0)
+    ColdspotX, ColdspotY = (0, 0)
+    HotspotX, HotspotY = (0, 0)
+    GunspotX, GunspotY = (0, 0)
 
-    ColdspotX = 0
-    ColdspotY = 0
-
-    HotspotX = 0
-    HotspotY = 0
-
-    GunspotX = 0
-    GunspotY = 0
-
-    ImageAddr = 0
-    MaskAddr = 0
+    ImageAddr, MaskAddr = (0, 0)
 
     DrawTransparent = False
 
-    ImageData = []
-    MaskData = []
+    ImageData, MaskData = ([], [])
