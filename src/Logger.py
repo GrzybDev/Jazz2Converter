@@ -1,19 +1,19 @@
-from colorama import init, Fore
+import logging
 
-init()
+from colorama import Fore
 
 
 def verbose(message):
-    return Fore.WHITE + message + Fore.RESET
+    return logging.debug(Fore.WHITE + message + Fore.RESET)
 
 
 def info(message):
-    return Fore.CYAN + message + Fore.RESET
+    return logging.info(Fore.CYAN + message + Fore.RESET)
 
 
 def warning(message):
-    return Fore.YELLOW + message + Fore.RESET
+    return logging.warning(Fore.YELLOW + message + Fore.RESET)
 
 
 def error(message):
-    return Fore.RED + message + Fore.RESET
+    return logging.critical(Fore.RED + message + Fore.RESET)
