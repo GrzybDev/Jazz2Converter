@@ -1,48 +1,39 @@
-import os
 import json
-import logging
+import os
 import zlib
 
 from PIL import Image
 
-from src.Helpers.logger import *
-from src.Utilities import FileConverter
+from src.DataClasses.Color import Color
+from src.Logger import error, info
+from src.Utilities.FileConverter import FileConverter
+
 
 class EpisodeConverter(FileConverter):
-
     def __init__(self, path):
         super().__init__(path)
 
-        self.position = 0
+        self.episodeToken: str = os.path.splitext(os.path.basename(path))[0]
+        self.episodeName: str = ""
+        self.episodeImage: Image = None
+        self.episodeTitleImage: Image = None
+        self.firstLevel: str = ""
 
-        self.episodeToken = os.path.splitext(os.path.basename(path))[0]
-        self.episodeName = ""
-        self.episodeImage = None
-        self.episodeTitleImage = None
-        self.firstLevel = ""
+        self.isRegistered: bool = False
 
-        self.isRegistered = False
+    def _FileConverter__convert(self):
+        self.__readHeader()
+        self.__readEpisodeInfo()
+        self.__readEpisodeImagesData()
 
-    
-    def convert(self):
-        super().convert()
-
-        try:
-            self.__readHeader()
-            self.__readEpisodeInfo()
-            self.__readEpisodeImagesData()
-        except Exception as e:
-            logging.error(error("Unexpected error happened during conversion of episode file! (" + str(e) + ")"))
-            self.finish()
-    
     def __readHeader(self):
         headerSize = self.file.ReadUInt()
 
         self.position = self.file.ReadUInt()
-        self.isRegistered = (self.file.ReadUInt() != 0)
+        self.isRegistered = self.file.ReadUInt() != 0
 
         unknown = self.file.ReadUInt()
-    
+
     def __readEpisodeInfo(self):
         """ Episode name"""
         episodeNameRaw = self.file.ReadBytes(128)
@@ -52,7 +43,7 @@ class EpisodeConverter(FileConverter):
 
         if firstNullByte is not -1:
             self.episodeName = episodeName[:firstNullByte]
-        
+
         """ First level """
         firstLevelRaw = self.file.ReadBytes(32)
         firstLevel = firstLevelRaw.decode()
@@ -61,7 +52,7 @@ class EpisodeConverter(FileConverter):
 
         if firstNullByte is not -1:
             self.firstLevel = firstLevel[:firstNullByte]
-    
+
     def __readEpisodeImagesData(self):
         self.width = self.file.ReadUInt()
         self.height = self.file.ReadUInt()
@@ -74,7 +65,7 @@ class EpisodeConverter(FileConverter):
 
         unknown3 = self.file.ReadUInt()
         unknown4 = self.file.ReadUInt()
-    
+
     def __readImage(self, width, height, outputPath):
         imagePackedSize = self.file.ReadUInt()
         imageUnpackedSize = width * height
@@ -82,17 +73,19 @@ class EpisodeConverter(FileConverter):
         imageBlock = zlib.decompress(self.file.ReadBytes(imagePackedSize))
 
         if len(imageBlock) != imageUnpackedSize:
-            logging.error(error("Invalid image unpacked size! "
-                                "Expected " + str(imageUnpackedSize) + ", got " + str(len(imageBlock)) +
-                                " Skipping that image..."))
+            error("Invalid image unpacked size! " +
+                  "Expected " + str(imageUnpackedSize) + ", got " + str(len(imageBlock)) + " " +
+                  "Skipping that image...")
             return
-        
+
         try:
-            palette = json.loads(open(outputPath.replace("Episodes", "Data") + "/Menu.Palette.json", "r").read())
-        except Exception:
-            logging.error(error("Cannot find palette file (Data/Menu.Palette.json), will use index colors..."))
+            with open(outputPath.replace("Episodes", "Data") + "/Menu.Palette.json", "r") as pFile:
+                pJSON = json.loads(pFile.read())
+                palette = [Color(colorID["r"], colorID["g"], colorID["b"], colorID["a"]) for colorID in pJSON]
+        except Exception as e:
+            error("Cannot find palette file (Data/Menu.Palette.json), will use index colors... (" + str(e) + ")")
             palette = False
-        
+
         image = Image.new("RGBA", [width, height], 255)
         imageData = image.load()
 
@@ -103,37 +96,30 @@ class EpisodeConverter(FileConverter):
                 if palette is not False:
                     color = palette[colorID]
                 else:
-                    color = {"a": colorID, "r": colorID, "g": colorID, "b": colorID}
-                
-                imageData[x, y] = (color["r"], color["g"], color["b"], color["a"])
-        
+                    color = Color(colorID, colorID, colorID, colorID)
+
+                imageData[x, y] = (color.r, color.g, color.b, color.a)
+
         return image
-    
-    def save(self, outputPath):
-        super().save(outputPath)
 
-        try:
-            fileLayout = {
-                "episodeName": self.episodeName,
-                "episodeToken": self.episodeToken,
-                "firstlevel": self.firstLevel,
-                "isRegistered": self.isRegistered,
-                "position": self.position
-            }
+    def _FileConverter__save(self, outputPath):
+        fileLayout = {
+            "episodeName": self.episodeName,
+            "episodeToken": self.episodeToken,
+            "firstlevel": self.firstLevel,
+            "isRegistered": self.isRegistered,
+            "position": self.position,
+        }
 
-            outputDir = outputPath + self.episodeName + "/"
-            os.mkdir(outputDir)
+        outputDir = outputPath + self.episodeName + "/"
+        os.mkdir(outputDir)
 
-            with open(outputDir + "episode.json", "w") as episodeFile:
-                json.dump(fileLayout, episodeFile)
-            
-            logging.info(info("Now converting episode image..."))
-            self.episodeImage = self.__readImage(self.width, self.height, outputPath)
-            self.episodeImage.save(outputDir + "image.png")
-            logging.info(info("Now converting episode title image..."))
-            self.episodeTitleImage = self.__readImage(self.titleWidth, self.titleHeight, outputPath)
-            self.episodeTitleImage.save(outputDir + "title.png")
-        except Exception as e:
-            logging.error(error("Unexpected error happened while saving episode... (" + str(e) + ")"))
-            self.finish()
+        with open(outputDir + "episode.json", "w") as episodeFile:
+            json.dump(fileLayout, episodeFile)
 
+        info("Now converting episode image...")
+        self.episodeImage = self.__readImage(self.width, self.height, outputPath)
+        self.episodeImage.save(outputDir + "image.png")
+        info("Now converting episode title image...")
+        self.episodeTitleImage = self.__readImage(self.titleWidth, self.titleHeight, outputPath)
+        self.episodeTitleImage.save(outputDir + "title.png")
