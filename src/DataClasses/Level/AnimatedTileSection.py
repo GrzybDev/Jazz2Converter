@@ -1,3 +1,7 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class AnimatedTileSection:
     Delay = 0
     DelayJitter = 0
