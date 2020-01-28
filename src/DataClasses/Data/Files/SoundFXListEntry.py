@@ -1,5 +1,9 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class SoundFXListEntry:
-    frame = 0
-    sample = 0
-    volume = 0
-    panning = 0
+    Frame: int = 0
+    Sample: int = 0
+    Volume: int = 0
+    Panning: int = 0
