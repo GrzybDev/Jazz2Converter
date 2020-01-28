@@ -1,15 +1,13 @@
 import os
-import logging
 
 from PIL import Image
 
-from src.Helpers.logger import *
-from src.Utilities import FileConverter
-from src.DataClasses import Color
+from src.DataClasses.Color import Color
+from src.Logger import verbose
+from src.Utilities.FileConverter import FileConverter
 
 
 class PictureDataFile(FileConverter):
-
     def __init__(self, path):
         super().__init__(path)
 
@@ -21,33 +19,24 @@ class PictureDataFile(FileConverter):
         self.image = None
         self.imageData = None
 
-    def convert(self):
-        super().convert()
+    def _FileConverter__convert(self):
+        self.__loadPictureData()
+        self.__loadPalette()
+        self.__convertImage()
 
-        try:
-            self.__loadPictureData()
-            self.__loadPalette()
-            self.__convertImage()
-        except Exception as e:
-            logging.error(error("Unexpected error happened while converting file: " + self.path + "! (" + str(e) + ")"))
+        self.finish()
 
     def __loadPictureData(self):
         self.width = self.file.ReadUInt()
         self.height = self.file.ReadUInt()
         self.bitDepth = self.file.ReadUInt()
 
-        logging.debug(verbose("Picture info: " + str(self.width) + "x" + str(self.height) +
-                              " (" + str(self.bitDepth) + " bit depth" + ")"))
+        verbose("Picture info: " + str(self.width) + "x" + str(self.height) + " " +
+                "(" + str(self.bitDepth) + " bit depth)")
 
     def __loadPalette(self):
         for colorByte in range(256):
-            color = Color()
-
-            color.r = self.file.ReadByte()
-            color.g = self.file.ReadByte()
-            color.b = self.file.ReadByte()
-            color.a = self.file.ReadByte()
-
+            color = Color(self.file.ReadByte(), self.file.ReadByte(), self.file.ReadByte(), self.file.ReadByte())
             self.palette.append(color)
 
     def __convertImage(self):
@@ -59,12 +48,13 @@ class PictureDataFile(FileConverter):
                 imageByte = self.file.ReadByte()
                 colorByte = self.palette[imageByte]
 
-                self.imageData[y, x] = (colorByte.r, colorByte.g, colorByte.b, colorByte.a)
+                self.imageData[y, x] = (
+                    colorByte.r,
+                    colorByte.g,
+                    colorByte.b,
+                    colorByte.a,
+                )
 
-        self.finish()
-
-    def save(self, outputPath):
-        super().save(outputPath)
-
+    def _FileConverter__save(self, outputPath):
         self.image.save(outputPath + ".png")
         os.remove(outputPath)
