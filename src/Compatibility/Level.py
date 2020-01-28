@@ -1,16 +1,20 @@
-import logging
 import os
-import zlib
-
-from src.Helpers.EventConverter import EventConverter
-from src.Helpers.logger import *
-from src.Mappings import EventParamType
-from src.Mappings.EventType import EventType
-from src.Utilities import FileConverter
-from src.DataClasses.Level import *
-from src.DataClasses.Data import DataBlock
-from src.Mappings.Jazz2Event import Jazz2Event
 from struct import pack
+
+from src.DataClasses.Level.AnimatedTileSection import AnimatedTileSection
+from src.DataClasses.Level.DictionaryEntry import DictionaryEntry
+from src.DataClasses.Level.LayerSection import LayerSection
+from src.DataClasses.Level.TileEventSection import TileEventSection
+from src.DataClasses.Level.TilePropertiesSection import TilePropertiesSection
+from src.Events import EventParamType
+from src.Events.EventConverter import EventConverter
+from src.Logger import error, warning
+from src.Mappings.Events.EventType import EventType
+from src.Mappings.Events.Jazz2Event import Jazz2Event
+from src.Utilities.FileConverter import FileConverter
+from src.Utilities.DataBlock import DataBlock
+
+eventConverter = EventConverter()
 
 
 class LevelConverter(FileConverter):
@@ -19,9 +23,10 @@ class LevelConverter(FileConverter):
     def __init__(self, path):
         super().__init__(path)
 
-        self.levelToken, self.name = ("", "")
-        self.tileset, self.music = ("", "")
-        self.nextLevel, self.bonusLevel, self.secretLevel = ("", "", "")
+        self.levelToken, self.name = (str, str)
+        self.tileset, self.music = (str, str)
+        self.nextLevel, self.bonusLevel, self.secretLevel = (str, str, str)
+        self.passwordHash: str = ""
 
         self.layers = []
         self.staticTiles = []
@@ -31,16 +36,13 @@ class LevelConverter(FileConverter):
         self.textEventStrings = []
         self.levelTokenTextIDs = []
 
-        self.version = 0
-        self.lightingMin, self.lightingStart = (0, 0)
-        self.animCount = 0
-        self.verticalMPSplitscreen = False
-        self.isMpLevel = False
-        self.hasPit, self.hasCTF, self.hasLaps = (False, False, False)
+        self.lightingMin, self.lightingStart = (int, int)
+        self.animCount: int = 0
+        self.verticalMPSplitscreen: bool = False
+        self.isMpLevel: bool = False
+        self.hasPit, self.hasCTF, self.hasLaps = (bool, bool, bool)
 
-    def convert(self):
-        super().convert()
-
+    def _FileConverter__convert(self):
         self.file.ReadBytes(180)  # Skip copyright notice
 
         self.levelToken = os.path.splitext(os.path.basename(self.path))[0]
@@ -52,62 +54,38 @@ class LevelConverter(FileConverter):
         self.__LoadLayers()
 
     def __ReadHeader(self):
-        headerBlock = DataBlock(self.file.ReadBytes(82))
+        headerBlock = DataBlock(self.file.ReadBytes(82), 82)
 
         magic = headerBlock.ReadUInt()
         if magic != 0x4C56454C:
-            logging.error(error("Invalid magic number in level file!"))
-            self.finish()
+            error("Invalid magic number in level file! (Expected " + str(0x4C56454C) + ", but got: " + str(magic) + ")")
+            raise ValueError("Invalid magic number in level file!")
 
         self.passwordHash = headerBlock.ReadUInt()
         self.name = headerBlock.ReadString(32, True)
 
-        self.version = headerBlock.ReadUShort()
-        self.MaxSupportedTiles = 1024 if self.version <= 514 else 4096
-        self.MaxSupportedAnims = 128 if self.version <= 514 else 256
+        version = headerBlock.ReadUShort()
+        self.MaxSupportedTiles = 1024 if version <= 514 else 4096
+        self.MaxSupportedAnims = 128 if version <= 514 else 256
 
-        self.recordedSize = headerBlock.ReadUInt()
-        self.recordedCRC = headerBlock.ReadUInt()
+        recordedSize = headerBlock.ReadUInt()
+        recordedCRC = headerBlock.ReadUInt()
 
-        self.infoBlockPackedSize = headerBlock.ReadUInt()
-        self.infoBlockUnpackedSize = headerBlock.ReadUInt()
-        self.eventBlockPackedSize = headerBlock.ReadUInt()
-        self.eventBlockUnpackedSize = headerBlock.ReadUInt()
-        self.dictBlockPackedSize = headerBlock.ReadUInt()
-        self.dictBlockUnpackedSize = headerBlock.ReadUInt()
-        self.layoutBlockPackedSize = headerBlock.ReadUInt()
-        self.layoutBlockUnpackedSize = headerBlock.ReadUInt()
+        infoBlockPackedSize = headerBlock.ReadUInt()
+        infoBlockUnpackedSize = headerBlock.ReadUInt()
+        eventBlockPackedSize = headerBlock.ReadUInt()
+        eventBlockUnpackedSize = headerBlock.ReadUInt()
+        dictBlockPackedSize = headerBlock.ReadUInt()
+        dictBlockUnpackedSize = headerBlock.ReadUInt()
+        layoutBlockPackedSize = headerBlock.ReadUInt()
+        layoutBlockUnpackedSize = headerBlock.ReadUInt()
 
-        self.infoBlock = self.file.ReadBytes(self.infoBlockPackedSize)
-        self.eventBlock = self.file.ReadBytes(self.eventBlockPackedSize)
-        self.dictBlock = self.file.ReadBytes(self.dictBlockPackedSize)
-        self.layoutBlock = self.file.ReadBytes(self.layoutBlockPackedSize)
-
-        if len(self.infoBlock) != self.infoBlockPackedSize \
-                or len(self.eventBlock) != self.eventBlockPackedSize \
-                or len(self.dictBlock) != self.dictBlockPackedSize \
-                or len(self.layoutBlock) != self.layoutBlockPackedSize:
-            logging.error(error("File is incomplete or corrupted!"))
-            self.finish()
-            return
-
-        self.infoBlock = zlib.decompress(self.infoBlock)
-        self.eventBlock = zlib.decompress(self.eventBlock)
-        self.dictBlock = zlib.decompress(self.dictBlock)
-        self.layoutBlock = zlib.decompress(self.layoutBlock)
-
-        if len(self.infoBlock) != self.infoBlockUnpackedSize \
-                or len(self.eventBlock) != self.eventBlockUnpackedSize \
-                or len(self.dictBlock) != self.dictBlockUnpackedSize \
-                or len(self.layoutBlock) != self.layoutBlockUnpackedSize:
-            logging.error(error("Incorrect block sizes after decompression!"))
-            self.finish()
-            return
-
-        self.infoBlock = DataBlock(self.infoBlock)
-        self.eventBlock = DataBlock(self.eventBlock)
-        self.dictBlock = DataBlock(self.dictBlock)
-        self.layoutBlock = DataBlock(self.layoutBlock)
+        self.infoBlock = DataBlock(self.file.ReadBytes(infoBlockPackedSize), infoBlockPackedSize, infoBlockUnpackedSize)
+        self.eventBlock = DataBlock(self.file.ReadBytes(eventBlockPackedSize), eventBlockPackedSize,
+                                    eventBlockUnpackedSize)
+        self.dictBlock = DataBlock(self.file.ReadBytes(dictBlockPackedSize), dictBlockPackedSize, dictBlockUnpackedSize)
+        self.layoutBlock = DataBlock(self.file.ReadBytes(layoutBlockPackedSize), layoutBlockPackedSize,
+                                     layoutBlockUnpackedSize)
 
     def __LoadMetadata(self):
         self.infoBlock.DiscardBytes(9)  # First 9 bytes are JCS coordinates on last save
@@ -124,9 +102,8 @@ class LevelConverter(FileConverter):
         secondLevelName = self.infoBlock.ReadString(32, True)
 
         if secondLevelName != self.name:
-            logging.error(error("Level name mismatch!"))
-            self.finish()
-            return
+            error("Level name mismatch!")
+            raise ValueError("Level name mismatch!")
 
         self.tileset = self.infoBlock.ReadString(32, True)
         self.bonusLevel = self.infoBlock.ReadString(32, True)
@@ -134,10 +111,7 @@ class LevelConverter(FileConverter):
         self.secretLevel = self.infoBlock.ReadString(32, True)
         self.music = self.infoBlock.ReadString(32, True)
 
-        self.textEventStrings = []
-
-        for i in range(16):
-            self.textEventStrings.append(self.infoBlock.ReadString(512, True))
+        self.textEventStrings = [self.infoBlock.ReadString(512, True) for each in range(16)]
 
         self.levelTokenTextIDs = []
 
@@ -146,63 +120,31 @@ class LevelConverter(FileConverter):
         self.staticTilesCount = self.infoBlock.ReadUShort()
 
         if self.MaxSupportedTiles - self.animCount != self.staticTilesCount:
-            logging.error(error("Tile count mismatch!"))
-            self.finish()
-            return
+            error("Tile count mismatch!")
+            raise ValueError("Tile count mismatch")
 
         self.__LoadStaticTileData()
         self.infoBlock.DiscardBytes(self.MaxSupportedTiles)  # The unused XMask field
         self.__LoadAnimatedTiles()
 
     def __LoadLayerMetadata(self):
-        self.layers = []
-        for i in range(self.LayerCount):
-            self.layers.append(LayerSection())
+        self.layers = [LayerSection() for each in range(self.LayerCount)]
 
-        for i in range(self.LayerCount):
-            self.layers[i].Flags = self.infoBlock.ReadUInt()
-
-        for i in range(self.LayerCount):
-            self.layers[i].Type = self.infoBlock.ReadByte()
-
-        for i in range(self.LayerCount):
-            self.layers[i].Used = self.infoBlock.ReadBool()
-
-        for i in range(self.LayerCount):
-            self.layers[i].Width = self.infoBlock.ReadUInt()
-
-        for i in range(self.LayerCount):
-            self.layers[i].InternalWidth = self.infoBlock.ReadUInt()
-
-        for i in range(self.LayerCount):
-            self.layers[i].Height = self.infoBlock.ReadUInt()
-
-        for i in range(self.LayerCount):
-            self.layers[i].Depth = self.infoBlock.ReadUInt()
-
-        for i in range(self.LayerCount):
-            self.layers[i].DetailLevel = self.infoBlock.ReadByte()
-
-        for i in range(self.LayerCount):
-            self.layers[i].WaveX = self.infoBlock.ReadEncodedFloat()
-
-        for i in range(self.LayerCount):
-            self.layers[i].WaveY = self.infoBlock.ReadEncodedFloat()
-
-        for i in range(self.LayerCount):
-            self.layers[i].SpeedX = self.infoBlock.ReadEncodedFloat()
-
-        for i in range(self.LayerCount):
-            self.layers[i].SpeedY = self.infoBlock.ReadEncodedFloat()
-
-        for i in range(self.LayerCount):
-            self.layers[i].AutoSpeedX = self.infoBlock.ReadEncodedFloat()
-
-        for i in range(self.LayerCount):
-            self.layers[i].AutoSpeedY = self.infoBlock.ReadEncodedFloat()
-
-        for i in range(self.LayerCount):
-            self.layers[i].TexturedBackgroundType = self.infoBlock.ReadByte()
+        for layer in self.layers: layer.Flags = self.infoBlock.ReadUInt()
+        for layer in self.layers: layer.Type = self.infoBlock.ReadByte()
+        for layer in self.layers: layer.Used = self.infoBlock.ReadBool()
+        for layer in self.layers: layer.Width = self.infoBlock.ReadUInt()
+        for layer in self.layers: layer.InternalWidth = self.infoBlock.ReadUInt()
+        for layer in self.layers: layer.Height = self.infoBlock.ReadUInt()
+        for layer in self.layers: layer.Depth = self.infoBlock.ReadUInt()
+        for layer in self.layers: layer.DetailLevel = self.infoBlock.ReadByte()
+        for layer in self.layers: layer.WaveX = self.infoBlock.ReadEncodedFloat()
+        for layer in self.layers: layer.WaveY = self.infoBlock.ReadEncodedFloat()
+        for layer in self.layers: layer.SpeedX = self.infoBlock.ReadEncodedFloat()
+        for layer in self.layers: layer.SpeedY = self.infoBlock.ReadEncodedFloat()
+        for layer in self.layers: layer.AutoSpeedX = self.infoBlock.ReadEncodedFloat()
+        for layer in self.layers: layer.AutoSpeedY = self.infoBlock.ReadEncodedFloat()
+        for layer in self.layers: layer.TexturedBackgroundType = self.infoBlock.ReadByte()
 
         for i in range(self.LayerCount):
             self.layers[i].TexturedParams1 = self.infoBlock.ReadByte()
@@ -224,11 +166,8 @@ class LevelConverter(FileConverter):
             tile.Event.Illuminate = (tileEvent & 0x00002000) >> 13 == 1
             tile.Event.TileParams = ((tileEvent >> 12) & 0x000FFFF0) | ((tileEvent >> 8) & 0x0000000F)
 
-        for i in range(self.MaxSupportedTiles):
-            self.staticTiles[i].Flipped = self.infoBlock.ReadBool()
-
-        for i in range(self.MaxSupportedTiles):
-            self.staticTiles[i].Type = self.infoBlock.ReadByte()
+        for i in range(self.MaxSupportedTiles): self.staticTiles[i].Flipped = self.infoBlock.ReadBool()
+        for i in range(self.MaxSupportedTiles): self.staticTiles[i].Type = self.infoBlock.ReadByte()
 
     def __LoadAnimatedTiles(self):
         self.animatedTiles = []
@@ -301,9 +240,7 @@ class LevelConverter(FileConverter):
 
                             layer.Tiles[i + x + y * layer.InternalWidth] = tiles[i]
 
-    def save(self, outputPath):
-        super().save(outputPath)
-
+    def _FileConverter__save(self, outputPath):
         outputPath = outputPath + os.path.splitext(os.path.basename(self.path))[0] + "/"
         os.mkdir(outputPath)
 
@@ -402,10 +339,14 @@ class LevelConverter(FileConverter):
 
                     if tileEvent.EventType == Jazz2Event.MODIFIER_GENERATOR:
                         # Generators are converted diffirently
-                        eventParams = EventConverter.ConvertParamInt(tileEvent.TileParams,
-                                                                     [[EventParamType.UInt, 8],  # Event
-                                                                      [EventParamType.UInt, 8],  # Delay
-                                                                      [EventParamType.Bool, 1]])  # Initial Delay
+                        eventParams = EventConverter.ConvertParamInt(
+                            tileEvent.TileParams,
+                            [
+                                [EventParamType.UInt, 8],  # Event
+                                [EventParamType.UInt, 8],  # Delay
+                                [EventParamType.Bool, 1],
+                            ],
+                        )  # Initial Delay
                         eventType = Jazz2Event(eventParams[0])
                         generatorDelay = eventParams[1]
                         generatorFlags = eventParams[2]
@@ -414,12 +355,20 @@ class LevelConverter(FileConverter):
                         generatorDelay = -1
                         generatorFlags = 0
 
-                    converted = EventConverter().Convert(self, eventType, tileEvent.TileParams)
+                    converted = eventConverter.Convert(self, eventType, tileEvent.TileParams)
 
                     # If the event is unsupported or can't be converted, show warning
-                    if eventType != Jazz2Event.EMPTY and converted.Type == EventType.Empty:
-                        logging.warning("Unsupported event found in map " + self.levelToken + \
-                                        " (" + str(eventType) + ")!")
+                    if (
+                            eventType != Jazz2Event.EMPTY
+                            and converted.Type == EventType.Empty
+                    ):
+                        logging.warning(
+                            "Unsupported event found in map "
+                            + self.levelToken
+                            + " ("
+                            + str(eventType)
+                            + ")!"
+                        )
 
                     eventFile.write(pack("H", int(converted.Type)))
 
@@ -452,24 +401,26 @@ class LevelConverter(FileConverter):
     def __WriteAnimatedTiles(self, outputPath):
         maxTiles = self.MaxSupportedTiles
         lastTilesetTileIndex = maxTiles - self.animCount
-        
+
         with open(outputPath, "wb") as tilesFile:
             tilesFile.write(pack("I", len(self.animatedTiles)))
-            
+
             for tile in self.animatedTiles:
                 tilesFile.write(pack("H", tile.FrameCount))
-                
+
                 for i in range(tile.FrameCount):
                     flipX, flipY = (False, False)
                     tileIdx = tile.Frames[i]
-                    
+
                     if (tileIdx & maxTiles) > 0:
                         flipX = True
                         tileIdx -= maxTiles
-                    
+
                     if tileIdx >= lastTilesetTileIndex:
                         fixFrames = self.animatedTiles[tileIdx - lastTilesetTileIndex].Frames
-                        logging.warning(warning("Level " + self.levelToken + " has animated tile in animated tile (" + str(tileIdx - lastTilesetTileIndex) + " -> " + str(fixFrames[0]) + ")! Applying quick tile redirection."))
+                        warning("Level " + str(self.levelToken) + " has animated tile in animated tile " +
+                                "(" + str(tileIdx - lastTilesetTileIndex) + " -> " + str(fixFrames[0]) + ")! " +
+                                "Applying quick tile redirection.")
                         tileIdx = fixFrames[0]
 
                     tileFlags = 0x00
