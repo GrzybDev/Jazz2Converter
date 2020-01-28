@@ -1,7 +1,10 @@
-class LevelEntry:
-    levelName = ""
-    minTextID = 0  # Always 0?
-    maxTextID = 0
-    levelOffset = 0
+from dataclasses import dataclass
 
-    helpStrings = []
+
+@dataclass
+class LevelEntry:
+    LevelName = ""
+    MinTextID, MaxTextID = (0, 0)
+    LevelOffset = 0
+
+    HelpStrings = []
