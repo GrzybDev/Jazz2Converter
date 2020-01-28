@@ -1,9 +1,14 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class DataFile:
-    name = ""
+    Name: str = ""
 
-    type = 0
-    offset = 0
+    Type: int = 0
+    Offset: int = 0
 
-    fileCRC = 0
-    filePackedSize = 0
-    fileUnpackedSize = 0
+    FileCRC: int = 0
+
+    FilePackedSize: int = 0
+    FileUnpackedSize: int = 0
