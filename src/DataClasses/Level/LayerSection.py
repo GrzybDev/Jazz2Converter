@@ -1,3 +1,7 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class LayerSection:
     Flags = 0
     Type = 0
@@ -10,18 +14,11 @@ class LayerSection:
 
     DetailLevel = 0
 
-    WaveX = 0
-    WaveY = 0
-
-    SpeedX = 0
-    SpeedY = 0
-
-    AutoSpeedX = 0
-    AutoSpeedY = 0
+    WaveX, WaveY = (0, 0)
+    SpeedX, SpeedY = (0, 0)
+    AutoSpeedX, AutoSpeedY = (0, 0)
 
     TexturedBackgroundType = 0
-    TexturedParams1 = 0
-    TexturedParams2 = 0
-    TexturedParams3 = 0
+    TexturedParams1, TexturedParams2, TexturedParams3 = (0, 0, 0)
 
     Tiles = []
