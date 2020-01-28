@@ -1,3 +1,7 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class Section:
     FrameCount = 0
     FrameRate = 0
