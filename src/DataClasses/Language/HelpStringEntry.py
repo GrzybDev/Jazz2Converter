@@ -1,4 +1,8 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class HelpStringEntry:
-    textID = 0
-    textLength = 0
-    helpString = ""
+    TextID = 0
+    TextLength = 0
+    HelpString = ""
