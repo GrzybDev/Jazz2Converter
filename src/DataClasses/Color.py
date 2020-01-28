@@ -1,5 +1,9 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class Color:
-    a = 0
-    b = 0
-    g = 0
-    r = 0
+    r: int = 0
+    g: int = 0
+    b: int = 0
+    a: int = 0
