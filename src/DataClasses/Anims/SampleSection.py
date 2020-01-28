@@ -1,12 +1,16 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class SampleSection:
     SampleRate = 0
     Data = []
     Multiplier = 0
 
-    totalSize = 0
-    chunkSize = 0
+    TotalSize = 0
+    ChunkSize = 0
     Format = 0
-    isASFF = False
-    sampSize = 0
-    payloadSize = 0
-    actualDataSize = 0
+    IsASFF = False
+    SampleSize = 0
+    PayloadSize = 0
+    ActualDataSize = 0
