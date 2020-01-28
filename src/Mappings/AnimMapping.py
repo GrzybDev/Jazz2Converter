@@ -1,11 +1,8 @@
-import logging
-
-from src.DataClasses.Anims.Mappings import Entry
-from src.Helpers.logger import *
+from src.DataClasses.Anims.Mappings.Entry import Entry
+from src.Logger import warning
 
 
 class AnimSetMapping(object):
-
     def __init__(self, setType):
         self.map = []
         self.tempSet = []
@@ -15,7 +12,32 @@ class AnimSetMapping(object):
         elif setType == "sample":
             self.__GetSampleMapping()
         else:
-            logging.warning(warning("Unknown anim set type! (" + setType + ")"))
+            warning("Unknown anim set type! (" + setType + ")")
+
+    def __Add(
+        self,
+        category,
+        name,
+        palette="Std.Palette",
+        skipNormalMap=False,
+        addBorder=0,
+        allowRealtimePalette=False,
+    ):
+        entry = Entry()
+
+        entry.AddBorder = addBorder
+        entry.AllowRealtimePalette = allowRealtimePalette
+        entry.Category = category
+        entry.Name = name
+        entry.Palette = palette
+        entry.SkipNormalMap = skipNormalMap
+
+        self.tempSet.append(entry)
+
+    def __NextSet(self, skipCount=1):
+        for i in range(skipCount):
+            self.map.append(self.tempSet)
+            self.tempSet = []
 
     def __GetAnimMapping(self):
         # Valid for 1.24
@@ -551,18 +573,45 @@ class AnimSetMapping(object):
         self.__NextSet(2)
         self.__Add("UI", "multiplayer_char", palette="Menu.Palette", skipNormalMap=True)
         self.__Add("UI", "multiplayer_color")
-        self.__Add("UI", "character_art_difficulty_jazz", palette="Menu.Palette", skipNormalMap=True)
-        self.__Add("UI", "character_art_difficulty_lori", palette="Menu.Palette", skipNormalMap=True)
-        self.__Add("UI", "character_art_difficulty_spaz", palette="Menu.Palette", skipNormalMap=True)
+        self.__Add(
+            "UI",
+            "character_art_difficulty_jazz",
+            palette="Menu.Palette",
+            skipNormalMap=True,
+        )
+        self.__Add(
+            "UI",
+            "character_art_difficulty_lori",
+            palette="Menu.Palette",
+            skipNormalMap=True,
+        )
+        self.__Add(
+            "UI",
+            "character_art_difficulty_spaz",
+            palette="Menu.Palette",
+            skipNormalMap=True,
+        )
         self.__Add("Unimplemented", "key", palette="Menu.Palette", skipNormalMap=True)
         self.__Add("UI", "loading_bar", palette="Menu.Palette", skipNormalMap=True)
         self.__Add("UI", "multiplayer_mode", palette="Menu.Palette", skipNormalMap=True)
-        self.__Add("UI", "character_name_jazz", palette="Menu.Palette", skipNormalMap=True)
-        self.__Add("UI", "character_name_lori", palette="Menu.Palette", skipNormalMap=True)
-        self.__Add("UI", "character_name_spaz", palette="Menu.Palette", skipNormalMap=True)
-        self.__Add("UI", "character_art_jazz", palette="Menu.Palette", skipNormalMap=True)
-        self.__Add("UI", "character_art_lori", palette="Menu.Palette", skipNormalMap=True)
-        self.__Add("UI", "character_art_spaz", palette="Menu.Palette", skipNormalMap=True)
+        self.__Add(
+            "UI", "character_name_jazz", palette="Menu.Palette", skipNormalMap=True
+        )
+        self.__Add(
+            "UI", "character_name_lori", palette="Menu.Palette", skipNormalMap=True
+        )
+        self.__Add(
+            "UI", "character_name_spaz", palette="Menu.Palette", skipNormalMap=True
+        )
+        self.__Add(
+            "UI", "character_art_jazz", palette="Menu.Palette", skipNormalMap=True
+        )
+        self.__Add(
+            "UI", "character_art_lori", palette="Menu.Palette", skipNormalMap=True
+        )
+        self.__Add(
+            "UI", "character_art_spaz", palette="Menu.Palette", skipNormalMap=True
+        )
         self.__NextSet()
         self.__Add("UI", "font_medium_2", palette="Menu.Palette")
         self.__Add("UI", "font_small_2", palette="Menu.Palette")
@@ -1536,23 +1585,6 @@ class AnimSetMapping(object):
         self.__Add("Doggy", "xmas_woof_2")
         self.__Add("Doggy", "xmas_woof_3")
         self.__NextSet()
-
-    def __Add(self, category, name, palette="Std.Palette", skipNormalMap=False, addBorder=0, allowRealtimePalette=False):
-        entry = Entry()
-
-        entry.AddBorder = addBorder
-        entry.AllowRealtimePalette = allowRealtimePalette
-        entry.Category = category
-        entry.Name = name
-        entry.Palette = palette
-        entry.SkipNormalMap = skipNormalMap
-
-        self.tempSet.append(entry)
-
-    def __NextSet(self, skipCount=1):
-        for i in range(skipCount):
-            self.map.append(self.tempSet)
-            self.tempSet = []
 
     def Get(self, setID, animID):
         try:
