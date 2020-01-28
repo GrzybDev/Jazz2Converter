@@ -1,3 +1,7 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class TileSection:
     Opaque = False
     ImageDataOffset = 0
