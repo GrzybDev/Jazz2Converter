@@ -397,8 +397,8 @@ class LevelConverter(FileConverter):
                             raise ValueError("Event parameter count must be at most 8")
 
                         fillerBytesCount = 8
-                        for i in range(min(len(converted.Params), 8)):
-                            eventFile.write(pack("H", int(converted.Params[i])))
+                        for param in converted.Params:
+                            eventFile.write(pack("H", int(param)))
                             fillerBytesCount -= 1
 
                         for i in range(fillerBytesCount):
