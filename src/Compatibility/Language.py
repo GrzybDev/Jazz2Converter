@@ -79,8 +79,6 @@ class LanguageConverter(FileConverter):
         mainBlockContent = self.file.ReadBytes(mainBlockLength)
         self.mainBlockStringsOffsets = [self.file.ReadUInt() for each in range(stringsCount)]
 
-        verbose("Main block strings offsets: " + str(self.mainBlockStringsOffsets))
-
         for offset in self.mainBlockStringsOffsets:
             self.mainBlockStrings.append(self.__readStringFromBlock(mainBlockContent, offset))
 
