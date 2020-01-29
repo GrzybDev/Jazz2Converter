@@ -1,5 +1,4 @@
 import json
-import logging
 import math
 from pathlib import Path
 from struct import pack
@@ -442,7 +441,7 @@ class AnimsConverter(FileConverter):
 
     def __extractAudioSamples(self, path):
         if len(self.samples) > 0:
-            logging.info(info("Now extracting audio samples..."))
+            info("Now extracting audio samples...")
 
             for sample in self.samples:
                 data = sampleMapping.Get(sample.Set, sample.IdInSet)
