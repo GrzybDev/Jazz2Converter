@@ -80,12 +80,20 @@ class LevelConverter(FileConverter):
         layoutBlockPackedSize = headerBlock.ReadUInt()
         layoutBlockUnpackedSize = headerBlock.ReadUInt()
 
-        self.infoBlock = DataBlock(self.file.ReadBytes(infoBlockPackedSize), infoBlockPackedSize, infoBlockUnpackedSize)
-        self.eventBlock = DataBlock(self.file.ReadBytes(eventBlockPackedSize), eventBlockPackedSize,
+        self.infoBlock = DataBlock(self.file.ReadBytes(infoBlockPackedSize),
+                                   infoBlockPackedSize,
+                                   infoBlockUnpackedSize)
+        self.eventBlock = DataBlock(self.file.ReadBytes(eventBlockPackedSize),
+                                    eventBlockPackedSize,
                                     eventBlockUnpackedSize)
-        self.dictBlock = DataBlock(self.file.ReadBytes(dictBlockPackedSize), dictBlockPackedSize, dictBlockUnpackedSize)
-        self.layoutBlock = DataBlock(self.file.ReadBytes(layoutBlockPackedSize), layoutBlockPackedSize,
+        self.dictBlock = DataBlock(self.file.ReadBytes(dictBlockPackedSize),
+                                   dictBlockPackedSize,
+                                   dictBlockUnpackedSize)
+        self.layoutBlock = DataBlock(self.file.ReadBytes(layoutBlockPackedSize),
+                                     layoutBlockPackedSize,
                                      layoutBlockUnpackedSize)
+
+        self.dictLength = int(dictBlockUnpackedSize / 8)
 
     def __LoadMetadata(self):
         self.infoBlock.DiscardBytes(9)  # First 9 bytes are JCS coordinates on last save
