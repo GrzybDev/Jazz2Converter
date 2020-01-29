@@ -52,15 +52,15 @@ class Converter(object):
                     error("Output path is not directory!")
                     sys.exit(ERROR_OUTPUT_IS_NOT_DIRECTORY)
 
-    def convert(self, option, type, extensions):
+    def convert(self, option, Type, extensions):
         threads = []
 
         if option in self.config and self.config[option]:
-            warning("Skipping " + type + " files...")
+            warning("Skipping " + Type + " files...")
         else:
-            info("Now converting " + type + " files...")
+            info("Now converting " + Type + " files...")
 
-            outputPath = self.outputPath + "/" + type + "/"
+            outputPath = self.outputPath + "/" + Type + "/"
             os.mkdir(outputPath)
 
             for extension in extensions:
@@ -72,7 +72,7 @@ class Converter(object):
                                               name=Type + "Converter (" + str(os.path.basename(file)) + ")"))
                         threads[-1].start()
                     else:
-                        warning("No valid converter for " + type + " (" + extension + ") is defined!")
+                        warning("No valid converter for " + Type + " (" + extension + ") is defined!")
                         break
 
         for thread in threads:
