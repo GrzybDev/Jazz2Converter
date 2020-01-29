@@ -2,6 +2,8 @@ import logging
 
 from colorama import Fore
 
+logging.basicConfig(format="[%(threadName)s] %(message)s")
+
 
 def verbose(message):
     return logging.debug(Fore.WHITE + message + Fore.RESET)
