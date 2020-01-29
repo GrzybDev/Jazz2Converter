@@ -1,7 +1,7 @@
 import glob
 import os
 import sys
-import threading
+from threading import Thread
 
 from src.Compatibility.Anims import AnimsConverter
 from src.Compatibility.Data import DataConverter
@@ -68,8 +68,8 @@ class Converter(object):
                     converter = self.converters.get(extension, None)
 
                     if converter is not None:
-                        converter = converter(file)
-                        threads.append(threading.Thread(target=self.converter_thread, args=(converter, outputPath)))
+                        threads.append(Thread(target=self.converter_thread, args=(converter, file, outputPath),
+                                              name=Type + "Converter (" + str(os.path.basename(file)) + ")"))
                         threads[-1].start()
                     else:
                         warning("No valid converter for " + type + " (" + extension + ") is defined!")
@@ -79,7 +79,8 @@ class Converter(object):
             thread.join()
 
     @staticmethod
-    def converter_thread(context, outputPath):
+    def converter_thread(context, File, outputPath):
+        context = context(File)
         context.convert()
         context.save(outputPath)
 
