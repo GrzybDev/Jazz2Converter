@@ -15,8 +15,6 @@ class MusicConverter(FileConverter):
         subprocess.call(["openmpt123", self.path, "--render"])
 
     def _FileConverter__save(self, outputPath):
-        super().save(outputPath)
-
         info("Now optimizing music file using FFMpeg...")
         subprocess.call(
             [
