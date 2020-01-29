@@ -6,15 +6,13 @@ from src.DataClasses.Level.DictionaryEntry import DictionaryEntry
 from src.DataClasses.Level.LayerSection import LayerSection
 from src.DataClasses.Level.TileEventSection import TileEventSection
 from src.DataClasses.Level.TilePropertiesSection import TilePropertiesSection
-from src.Events import EventParamType
+from src.Events.EventParamType import EventParamType
 from src.Events.EventConverter import EventConverter
-from src.Logger import error, warning
+from src.Logger import error, warning, verbose
 from src.Mappings.Events.EventType import EventType
 from src.Mappings.Events.Jazz2Event import Jazz2Event
 from src.Utilities.FileConverter import FileConverter
 from src.Utilities.DataBlock import DataBlock
-
-eventConverter = EventConverter()
 
 
 class LevelConverter(FileConverter):
@@ -41,6 +39,8 @@ class LevelConverter(FileConverter):
         self.verticalMPSplitscreen: bool = False
         self.isMpLevel: bool = False
         self.hasPit, self.hasCTF, self.hasLaps = (bool, bool, bool)
+
+        self.eventConverter = EventConverter()
 
     def _FileConverter__convert(self):
         self.file.ReadBytes(180)  # Skip copyright notice
@@ -224,8 +224,7 @@ class LevelConverter(FileConverter):
                 self.hasLaps = True
 
     def __LoadLayers(self):
-        dictLength = int(self.dictBlockUnpackedSize / 8)
-        self.dictionary = [DictionaryEntry() for each in range(dictLength)]
+        self.dictionary = [DictionaryEntry() for each in range(self.dictLength)]
 
         for entry in self.dictionary:
             entry.Tiles = [0 for each in range(4)]
@@ -363,20 +362,19 @@ class LevelConverter(FileConverter):
                         generatorDelay = -1
                         generatorFlags = 0
 
-                    converted = eventConverter.Convert(self, eventType, tileEvent.TileParams)
+                    converted = self.eventConverter.Convert(self, eventType, tileEvent.TileParams)
+
+                    if eventType != EventType.Empty:
+                        verbose("Converted " + str(eventType) + " to " + str(converted.Type) + " " +
+                                "with params: " + str(converted.Params))
 
                     # If the event is unsupported or can't be converted, show warning
                     if (
                             eventType != Jazz2Event.EMPTY
                             and converted.Type == EventType.Empty
                     ):
-                        logging.warning(
-                            "Unsupported event found in map "
-                            + self.levelToken
-                            + " ("
-                            + str(eventType)
-                            + ")!"
-                        )
+                        warning("Unsupported event found in map " + str(self.levelToken) + " " +
+                                "(" + str(eventType) + ")!")
 
                     eventFile.write(pack("H", int(converted.Type)))
 
