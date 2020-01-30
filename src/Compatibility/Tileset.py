@@ -39,11 +39,11 @@ class TilesetConverter(FileConverter):
         magicValue = headerBlock.ReadUInt()
         signature = headerBlock.ReadUInt()
 
-        if magicValue == 0x454C4954:
+        if magicValue != 0x454C4954:
             error("Invalid magic value (Expected " + str(0x454C4954) + ", but got " + str(magicValue) + ")")
             raise ValueError("Invalid magic value")
 
-        if signature == 0xAFBEADDE:
+        if signature != 0xAFBEADDE:
             error("Invalid signature (Expected " + str(0xAFBEADDE) + ", but got " + str(signature) + ")")
             raise ValueError("Invalid signature")
 
