@@ -64,12 +64,12 @@ class Converter(object):
             os.mkdir(outputPath)
 
             for extension in extensions:
-                for file in glob.glob(self.gamePath + "/*." + extension):
+                for File in glob.glob(self.gamePath + "/*." + extension):
                     converter = self.converters.get(extension, None)
 
                     if converter is not None:
-                        threads.append(Thread(target=self.converter_thread, args=(converter, file, outputPath),
-                                              name=Type + "Converter (" + str(os.path.basename(file)) + ")"))
+                        threads.append(Thread(target=self.converter_thread, args=(converter, File, outputPath),
+                                              name=Type + "Converter (" + str(os.path.basename(File)) + ")"))
                         threads[-1].start()
                     else:
                         warning("No valid converter for " + Type + " (" + extension + ") is defined!")
