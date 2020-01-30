@@ -68,21 +68,20 @@ class VideoConverter(FileConverter):
         for i in range(4):
             self.Blocks.append(VideoBlock(i))
 
-        rawData = ""
         while self.file.context.tell() != fileLength:
             for block in self.Blocks:
                 block.CompressedLength = self.file.ReadUInt()
-                rawData += self.file.ReadBytes(block.CompressedLength)
-                block.DataLength += block.CompressedLength
+                block.CompressedData += self.file.ReadBytes(block.CompressedLength)
+                block.CompressedDataLength += block.CompressedLength
 
         for block in self.Blocks:
-            if len(rawData) == block.DataLength:
+            if len(block.CompressedData) == block.CompressedDataLength:
                 decompressor = zlib.decompressobj()
-                data = decompressor.decompress(rawData)
+                data = decompressor.decompress(block.CompressedData)
                 data += decompressor.flush()
                 block.Data = DataBlock(data, len(data))
             else:
-                error("Read " + str(len(rawData)) + " bytes, but expected " + str(block.CompressedLength))
+                error("Read " + str(len(block.CompressedData)) + " bytes, but expected " + str(block.CompressedLength))
                 break
 
     def __ExtractFrames(self):
@@ -116,9 +115,7 @@ class VideoConverter(FileConverter):
                         u = self.Blocks[0].Data.ReadUShort() if c == 0 else c
 
                         for i in range(u):
-                            pixels[(y * self.Width) + x] = self.Blocks[
-                                3
-                            ].Data.ReadByte()
+                            pixels[(y * self.Width) + x] = self.Blocks[3].Data.ReadByte()
                             x += 1
                     else:
                         u = self.Blocks[0].Data.ReadUShort() if c == 0x81 else c - 106
@@ -131,6 +128,8 @@ class VideoConverter(FileConverter):
                             pixels[(y * self.Width) + x] = copy[n]
                             x += 1
                             n += 1
+
+                    c = self.Blocks[0].Data.ReadByte()
 
             frame = Image.frombytes(
                 frame.mode, (frame.width, frame.height), bytes(pixels)
