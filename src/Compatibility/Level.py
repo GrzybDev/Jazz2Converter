@@ -34,7 +34,7 @@ class LevelConverter(FileConverter):
         self.textEventStrings = []
         self.levelTokenTextIDs = []
 
-        self.lightingMin, self.lightingStart = (int, int)
+        self.lightingMin, self.lightingStart = (0, 0)
         self.animCount: int = 0
         self.verticalMPSplitscreen: bool = False
         self.isMpLevel: bool = False
