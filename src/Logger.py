@@ -2,7 +2,7 @@ import logging
 
 from colorama import Fore
 
-logging.basicConfig(format="[%(threadName)s] %(message)s")
+logging.basicConfig(format="[%(processName)s] %(message)s")
 
 
 def verbose(message):
