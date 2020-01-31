@@ -1,3 +1,4 @@
+import json
 import os
 from struct import pack
 
@@ -6,13 +7,13 @@ from src.DataClasses.Level.DictionaryEntry import DictionaryEntry
 from src.DataClasses.Level.LayerSection import LayerSection
 from src.DataClasses.Level.TileEventSection import TileEventSection
 from src.DataClasses.Level.TilePropertiesSection import TilePropertiesSection
-from src.Events.EventParamType import EventParamType
 from src.Events.EventConverter import EventConverter
-from src.Logger import error, warning, verbose
+from src.Events.EventParamType import EventParamType
+from src.Logger import error, warning
 from src.Mappings.Events.EventType import EventType
 from src.Mappings.Events.Jazz2Event import Jazz2Event
-from src.Utilities.FileConverter import FileConverter
 from src.Utilities.DataBlock import DataBlock
+from src.Utilities.FileConverter import FileConverter
 
 
 class LevelConverter(FileConverter):
@@ -257,6 +258,35 @@ class LevelConverter(FileConverter):
         self.__WriteEvents(outputPath + "Events.data")
         self.__WriteAnimatedTiles(outputPath + "Animated.Tiles")
 
+        levelFlags = 0
+        if self.hasPit: levelFlags |= 1 << 1
+        if self.hasLaps: levelFlags |= 1 << 0
+
+        if self.isMpLevel:
+            levelFlags |= 1 << 10
+
+            if self.hasLaps:
+                levelFlags |= 1 << 11
+
+            if self.hasCTF:
+                levelFlags |= 1 << 12
+
+        levelData = {
+            "Name": self.name,
+            "NextLevel": self.nextLevel,
+            "SecretLevel": self.secretLevel,
+            "BonusLevel": self.bonusLevel,
+            "DefaultTileset": self.tileset,
+            "DefaultMusic": self.music,
+            "DefaultLight": self.lightingStart * 100 / 64,
+            "Flags": levelFlags,
+            "TextEvents": self.textEventStrings,
+            "Layers": self.__getLayersMetadata()
+        }
+        
+        with open(outputPath + "level.json", "w") as metadataFile:
+            json.dump(levelData, metadataFile)
+
     def __WriteLayer(self, outputPath, layer):
         if not layer.Used:
             return
@@ -446,3 +476,43 @@ class LevelConverter(FileConverter):
                 tilesFile.write(pack("H", tile.DelayJitter))
                 tilesFile.write(pack("B", reverse))
                 tilesFile.write(pack("H", tile.ReverseDelay))
+
+    def __getLayersMetadata(self):
+        output = {}
+
+        for index, layer in enumerate(self.layers):
+            if not layer.Used:
+                continue
+
+            addBackgroundFields = index == 7
+
+            output[index] = {}
+
+            if layer.SpeedX != 0 or layer.SpeedY != 0:
+                output[index]["SpeedX"] = layer.SpeedX
+                output[index]["SpeedY"] = layer.SpeedY
+
+            xRepeat = (layer.Flags & 0x00000001) != 0
+            yRepeat = (layer.Flags & 0x00000002) != 0
+            inherentOffset = (layer.Flags & 0x00000004) != 0
+
+            if xRepeat or yRepeat:
+                output[index]["RepeatX"] = xRepeat
+                output[index]["RepeatY"] = yRepeat
+
+            output[index]["Depth"] = layer.Depth
+            output[index]["InherentOffset"] = inherentOffset
+
+            if addBackgroundFields:
+                if (layer.Flags & 0x00000008) > 0:
+                    output[index]["BackgroundStyle"] = layer.TexturedBackgroundType + 1
+                    output[index]["BackgroundColor"] = [layer.TexturedParams1,
+                                                        layer.TexturedParams2,
+                                                        layer.TexturedParams3]
+                    output[index]["ParallaxStarsEnabled"] = (layer.Flags & 0x00000010) > 0
+                else:
+                    # Approximation of offsets from JJ2
+                    output[index]["OffsetX"] = 180
+                    output[index]["OffsetY"] = -300
+
+        return output
