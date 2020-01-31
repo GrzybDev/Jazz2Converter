@@ -199,10 +199,10 @@ class LevelConverter(FileConverter):
         width = self.layers[3].Width
         height = self.layers[3].Height
 
-        self.events = [TileEventSection() for each in range(width * height)]
-
         if width <= 0 and height <= 0:
             return
+
+        self.events = [TileEventSection() for each in range(width * height)]
 
         for y in range(height):
             for x in range(width):
@@ -210,8 +210,8 @@ class LevelConverter(FileConverter):
 
                 tileEvent = self.events[x + y * width]
                 tileEvent.EventType = Jazz2Event(eventData & 0x000000FF)
-                tileEvent.Difficulty = (eventData & 0x00000300) == 0
-                tileEvent.Illuminate = ((eventData & 0x00000400) >> 10) == 1
+                tileEvent.Difficulty = (eventData & 0x00000300) >> 8
+                tileEvent.Illuminate = (eventData & 0x00000400) >> 10 == 1
                 tileEvent.TileParams = (eventData & 0xFFFFF000) >> 12
 
         if self.events[-1].EventType == Jazz2Event.MCE:
@@ -326,7 +326,6 @@ class LevelConverter(FileConverter):
             for y in range(height):
                 for x in range(width):
                     tileEvent = self.events[x + y * width]
-
                     flags = 0
 
                     if tileEvent.Illuminate:
@@ -339,7 +338,7 @@ class LevelConverter(FileConverter):
                         flags |= 0x20  # Difficulty: Normal
 
                     if tileEvent.Difficulty != 1:
-                        flags |= 0x30  # Difficulty: Hard
+                        flags |= 0x40  # Difficulty: Hard
 
                     if tileEvent.Difficulty == 3:
                         flags |= 0x80  # Multiplayer only
