@@ -363,10 +363,6 @@ class LevelConverter(FileConverter):
 
                     converted = self.eventConverter.Convert(self, eventType, tileEvent.TileParams)
 
-                    if eventType != EventType.Empty:
-                        verbose("Converted " + str(eventType) + " to " + str(converted.Type) + " " +
-                                "with params: " + str(converted.Params))
-
                     # If the event is unsupported or can't be converted, show warning
                     if (
                             eventType != Jazz2Event.EMPTY
