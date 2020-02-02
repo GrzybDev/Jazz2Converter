@@ -12,7 +12,7 @@ from src.Logger import info, warning, verbose, error
 
 
 def showHelp():
-    info('Usage: run.py [-h|--help] -i|--input "GAME FOLDER" (arguments)')
+    info('Usage: run.py [-h|--help] -i|--input "GAME FOLDER" -o|--output "OUTPUT FOLDER" (arguments)')
     info("\n")
     info("-h | --help\t|| Shows this message")
     info("-v | --verbose\t|| Shows additional debug information")
