@@ -1,2 +1,2 @@
-colorama
-Pillow
+colorama==0.4.3
+Pillow==7.0.0
