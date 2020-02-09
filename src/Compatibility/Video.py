@@ -141,7 +141,10 @@ class VideoConverter(FileConverter):
         defaultDuration = self.TotalFrames / 25
         correctDuration = self.DelayBetweenFrames * self.TotalFrames / 1000
         correction = 1 + (correctDuration - defaultDuration) / defaultDuration
-
+        
+        with open(outputPath + os.path.splitext(os.path.basename(self.path))[0] + ".txt", "w") as metaFile:
+            metaFile.write(str(self.DelayBetweenFrames / 1000))
+            
         info("Now optimizing video file using FFMpeg...")
         subprocess.call(
             [
@@ -151,7 +154,7 @@ class VideoConverter(FileConverter):
                 "-pix_fmt",
                 "yuv420p",
                 "-filter:v",
-                "setpts=" + str(correction) + "*PTS,fps=60",
+                "setpts=" + str(correction) + "*PTS",
                 outputPath
                 + os.path.splitext(os.path.basename(self.path))[0]
                 + ".mp4",
