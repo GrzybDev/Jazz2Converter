@@ -11,6 +11,7 @@ from src.Compatibility.Level import LevelConverter
 from src.Compatibility.Music import MusicConverter
 from src.Compatibility.Tileset import TilesetConverter
 from src.Compatibility.Video import VideoConverter
+from src.Patches.TexturePalette import TexturePalettePatcher
 from src.ErrorCodes import ERROR_OUTPUT_IS_NOT_DIRECTORY, ERROR_OUTPUT_IS_NOT_EMPTY
 from src.Logger import info, verbose, warning, error
 
@@ -83,6 +84,12 @@ class Converter(object):
         context = context(File)
         context.convert()
         context.save(outputPath)
+    
+    def patch(self, file, Type):
+        if Type == "Texture":
+            patcher = TexturePalettePatcher(file)
+            patcher.convert()
+            patcher.save(file)
 
     def run(self):
         info("Starting conversions...")
@@ -95,5 +102,9 @@ class Converter(object):
         self.convert("skipMusic", "Music", ["j2b", "mod", "it", "s3m"])
         self.convert("skipTilesets", "Tilesets", ["j2t"])
         self.convert("skipVideos", "Videos", ["j2v"])
-
+        
+        self.patch(self.outputPath + "/Data/Menu.Texture.16x16.png", "Texture")
+        self.patch(self.outputPath + "/Data/Menu.Texture.32x32.png", "Texture")
+        self.patch(self.outputPath + "/Data/Menu.Texture.128x128.png", "Texture")
+        
         info("Finished conversions!")
